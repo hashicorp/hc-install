@@ -9,43 +9,34 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/hashicorp/go-getter"
+	goGetter "github.com/hashicorp/go-getter"
 	"golang.org/x/crypto/openpgp"
 )
 
-func ensureInstallDir(installDir string) (string, error) {
-	if installDir == "" {
-		return ioutil.TempDir("", "tfexec")
-	}
+const releasesURL = "https://releases.hashicorp.com"
 
-	if _, err := os.Stat(installDir); err != nil {
-		return "", fmt.Errorf("could not access directory %s for installing Terraform: %w", installDir, err)
-	}
-
-	return installDir, nil
-}
-
-func downloadWithVerification(ctx context.Context, tfVersion string, installDir string, appendUserAgent string) (string, error) {
+func downloadWithVerification(ctx context.Context, product string, productVersion string, installDir string, appendUserAgent string) (string, error) {
 	osName := runtime.GOOS
 	archName := runtime.GOARCH
+	baseURL := releasesURL + "/" + product
 
-	// setup: ensure we have a place to put our downloaded terraform binary
+	// setup: ensure we have a place to put our downloaded binary
 	tfDir, err := ensureInstallDir(installDir)
 	if err != nil {
 		return "", err
 	}
 
-	httpGetter := &getter.HttpGetter{
+	httpGetter := &goGetter.HttpGetter{
 		Netrc:  true,
 		Client: newHTTPClient(appendUserAgent),
 	}
-	client := getter.Client{
+	client := goGetter.Client{
 		Ctx: ctx,
-		Getters: map[string]getter.Getter{
+		Getters: map[string]goGetter.Getter{
 			"https": httpGetter,
 		},
 	}
-	client.Mode = getter.ClientModeAny
+	client.Mode = goGetter.ClientModeAny
 
 	// firstly, download and verify the signature of the checksum file
 
@@ -55,11 +46,11 @@ func downloadWithVerification(ctx context.Context, tfVersion string, installDir 
 	}
 	defer os.RemoveAll(sumsTmpDir)
 
-	sumsFilename := "terraform_" + tfVersion + "_SHA256SUMS"
+	sumsFilename := product + "_" + productVersion + "_SHA256SUMS"
 	sumsSigFilename := sumsFilename + ".sig"
 
-	sumsURL := fmt.Sprintf("%s/%s/%s", baseURL, tfVersion, sumsFilename)
-	sumsSigURL := fmt.Sprintf("%s/%s/%s", baseURL, tfVersion, sumsSigFilename)
+	sumsURL := fmt.Sprintf("%s/%s/%s", baseURL, productVersion, sumsFilename)
+	sumsSigURL := fmt.Sprintf("%s/%s/%s", baseURL, productVersion, sumsSigFilename)
 
 	client.Src = sumsURL
 	client.Dst = sumsTmpDir
@@ -82,17 +73,17 @@ func downloadWithVerification(ctx context.Context, tfVersion string, installDir 
 		return "", err
 	}
 
-	// secondly, download Terraform itself, verifying the checksum
-	url := tfURL(tfVersion, osName, archName)
+	// secondly, download the binary itself, verifying the checksum
+	url := hcURL(product, productVersion, osName, archName)
 	client.Src = url
 	client.Dst = tfDir
-	client.Mode = getter.ClientModeDir
+	client.Mode = goGetter.ClientModeDir
 	err = client.Get()
 	if err != nil {
 		return "", err
 	}
 
-	return filepath.Join(tfDir, "terraform"), nil
+	return filepath.Join(tfDir, product), nil
 }
 
 // verifySumsSignature downloads SHA256SUMS and SHA256SUMS.sig and verifies
@@ -115,11 +106,11 @@ func verifySumsSignature(sumsPath, sumsSigPath string) error {
 	return err
 }
 
-func tfURL(tfVersion, osName, archName string) string {
-	sumsFilename := "terraform_" + tfVersion + "_SHA256SUMS"
-	sumsURL := fmt.Sprintf("%s/%s/%s", baseURL, tfVersion, sumsFilename)
+func hcURL(product, productVersion, osName, archName string) string {
+	sumsFilename := product + "_" + productVersion + "_SHA256SUMS"
+	sumsURL := fmt.Sprintf("%s/%s/%s/%s", releasesURL, product, productVersion, sumsFilename)
 	return fmt.Sprintf(
-		"%s/%s/terraform_%s_%s_%s.zip?checksum=file:%s",
-		baseURL, tfVersion, tfVersion, osName, archName, sumsURL,
+		"%s/%s/%s/%s_%s_%s_%s.zip?checksum=file:%s",
+		releasesURL, product, productVersion, product, productVersion, osName, archName, sumsURL,
 	)
 }

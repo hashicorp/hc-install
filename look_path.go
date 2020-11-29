@@ -6,25 +6,23 @@ import (
 	"os/exec"
 )
 
-type LookPathOption struct {
+func LookPath() *LookPathGetter {
+	return &LookPathGetter{}
 }
 
-var _ ExecPathFinder = &LookPathOption{}
-
-func LookPath() *LookPathOption {
-	opt := &LookPathOption{}
-
-	return opt
+type LookPathGetter struct {
+	getter
 }
 
-func (opt *LookPathOption) ExecPath(context.Context) (string, error) {
-	p, err := exec.LookPath("terraform")
+func (g *LookPathGetter) Get(ctx context.Context) (string, error) {
+	p, err := exec.LookPath(g.c.Product.Name)
 	if err != nil {
 		if notFoundErr, ok := err.(*exec.Error); ok && notFoundErr.Err == exec.ErrNotFound {
-			log.Printf("[WARN] could not locate a terraform executable on system path; continuing")
+			log.Printf("[WARN] could not locate a %s executable on system path; continuing", g.c.Product.Name)
 			return "", nil
 		}
 		return "", err
 	}
+
 	return p, nil
 }

@@ -2,29 +2,27 @@ package hcinstall
 
 import (
 	"context"
-	"io/ioutil"
-	"os"
+	// "io/ioutil"
+	// "os"
 	"os/exec"
 	"strings"
 	"testing"
 )
 
-// test that Find falls back to the next working strategy when the file at
-// ExactPath does not exist
-func TestFindFallback(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "hcinstall-test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tmpDir)
+func TestInstall(t *testing.T) {
+	// tmpDir, err := ioutil.TempDir("", "hcinstall-test")
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
+	// defer os.RemoveAll(tmpDir)
 
-	tfpath, err := Find(context.Background(), ExactPath("/hopefully/completely/nonexistent/path"), ExactVersion("0.12.26", tmpDir))
+	tfPath, err := Install(context.Background(), "", ProductTerraform, "0.12.26")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// run "terraform version" to check we've downloaded a terraform 0.12.26 binary
-	cmd := exec.Command(tfpath, "version")
+	cmd := exec.Command(tfPath, "version")
 
 	out, err := cmd.Output()
 	if err != nil {

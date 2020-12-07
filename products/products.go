@@ -1,4 +1,4 @@
-package hcinstall
+package products
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ type Product struct {
 	GetVersion func(string) (*version.Version, error)
 }
 
-var ProductTerraform = Product{
+var Terraform = Product{
 	Name: "terraform",
 	GetVersion: func(path string) (*version.Version, error) {
 		cmd := exec.Command(path, "version")

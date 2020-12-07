@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-checkpoint"
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/hcinstall/products"
 )
 
 type Getter interface {
@@ -28,7 +29,7 @@ func (g *getter) SetClient(c *Client) { g.c = c }
 // Convenience functions such as hcinstall.Install use a Client with default
 // values. A Client can be instantiated and
 type Client struct {
-	Product Product
+	Product products.Product
 
 	InstallDir string
 
@@ -116,7 +117,7 @@ func (c *Client) assertVersion(execPath string) error {
 // Note that the DefaultFinders are applied in order, and therefore if a local
 // executable is found that satisfies the version constraints and checksum,
 // no download need take place.
-func Install(ctx context.Context, dstDir string, product Product, versionConstraints string) (string, error) {
+func Install(ctx context.Context, dstDir string, product products.Product, versionConstraints string) (string, error) {
 	installDir, err := ensureInstallDir(dstDir)
 	if err != nil {
 		return "", err

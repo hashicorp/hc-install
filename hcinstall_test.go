@@ -2,21 +2,15 @@ package hcinstall
 
 import (
 	"context"
-	// "io/ioutil"
-	// "os"
 	"os/exec"
 	"strings"
 	"testing"
+
+	"github.com/hashicorp/hcinstall/products"
 )
 
 func TestInstall(t *testing.T) {
-	// tmpDir, err := ioutil.TempDir("", "hcinstall-test")
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-	// defer os.RemoveAll(tmpDir)
-
-	tfPath, err := Install(context.Background(), "", ProductTerraform, "0.12.26")
+	tfPath, err := Install(context.Background(), "", products.Terraform, "0.12.26")
 	if err != nil {
 		t.Fatal(err)
 	}

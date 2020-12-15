@@ -18,8 +18,7 @@ type Getter interface {
 }
 
 type getter struct {
-	c                  *Client
-	VersionConstraints VersionConstraints
+	c *Client
 }
 
 func (g *getter) SetClient(c *Client) { g.c = c }
@@ -36,8 +35,6 @@ type Client struct {
 	Getters []Getter
 
 	VersionConstraints *VersionConstraints
-
-	ForceCheckpoint bool
 }
 
 func (c *Client) Install(ctx context.Context) (string, error) {
@@ -77,12 +74,29 @@ func (c *Client) Install(ctx context.Context) (string, error) {
 	return execPath, nil
 }
 
+// assertVersion returns an error if the product executable at execPath does not
+// satisfy the client VersionConstraints.
 func (c *Client) assertVersion(execPath string) error {
 	var v *version.Version
+
+	actualVersion, err := c.Product.GetVersion(execPath)
+	if err != nil {
+		return err
+	}
+
+	versionConstraints := c.VersionConstraints.constraints
+	if versionConstraints != nil {
+		if versionConstraints.Check(actualVersion) {
+			return nil
+		} else {
+			return fmt.Errorf("reported version %s did not satisfy version constraints %s", actualVersion, versionConstraints.String())
+		}
+	}
+
 	if c.VersionConstraints.latest {
 		resp, err := checkpoint.Check(&checkpoint.CheckParams{
 			Product: c.Product.Name,
-			Force:   c.ForceCheckpoint,
+			Force:   c.VersionConstraints.forceCheckpoint,
 		})
 		if err != nil {
 			return err
@@ -96,13 +110,8 @@ func (c *Client) assertVersion(execPath string) error {
 		if err != nil {
 			return err
 		}
-	} else {
+	} else if c.VersionConstraints.exact != nil {
 		v = c.VersionConstraints.exact
-	}
-
-	actualVersion, err := c.Product.GetVersion(execPath)
-	if err != nil {
-		return err
 	}
 
 	if !actualVersion.Equal(v) {
@@ -117,13 +126,13 @@ func (c *Client) assertVersion(execPath string) error {
 // Note that the DefaultFinders are applied in order, and therefore if a local
 // executable is found that satisfies the version constraints and checksum,
 // no download need take place.
-func Install(ctx context.Context, dstDir string, product products.Product, versionConstraints string) (string, error) {
+func Install(ctx context.Context, dstDir string, product products.Product, versionConstraints string, forceCheckpoint bool) (string, error) {
 	installDir, err := ensureInstallDir(dstDir)
 	if err != nil {
 		return "", err
 	}
 
-	v, err := NewVersionConstraints(versionConstraints)
+	v, err := NewVersionConstraints(versionConstraints, forceCheckpoint)
 	if err != nil {
 		return "", err
 	}

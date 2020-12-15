@@ -28,7 +28,7 @@ import (
 )
 
 func main() {
-  tfPath, err := hcinstall.Install(context.Background(), "", hcinstall.ProductTerraform, "0.13.5")
+  tfPath, err := hcinstall.Install(context.Background(), "", hcinstall.ProductTerraform, "0.13.5", true)
   if err != nil {
     panic(err)
   }
@@ -48,7 +48,7 @@ import (
 )
 
 func main() {
-  v, err := NewVersionConstraints("0.13.5")
+  v, err := NewVersionConstraints("0.13.5", true)
   if err != nil {
     panic(err)
   }
@@ -58,10 +58,9 @@ func main() {
     InstallDir: "/usr/local/bin",
     Getters: []Getter{hcinstall.LookPath(), hcinstall.Releases()},
     VersionConstraints: v,
-    ForceCheckpoint: true,
   }
   
-  tfPath, err := client.Install(context.Background()
+  tfPath, err := client.Install(context.Background())
   if err != nil {
     panic(err)
   }

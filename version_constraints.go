@@ -1,7 +1,8 @@
 package hcinstall
 
 import (
-	"errors"
+	"fmt"
+	"regexp"
 
 	"github.com/hashicorp/go-version"
 )
@@ -9,12 +10,11 @@ import (
 type VersionConstraints struct {
 	latest bool
 
-	// UNIMPLEMENTED: see NewVersionConstraints
 	constraints version.Constraints
 
-	// DEPRECATED: to be removed when constraints is implemented, as
-	// exact versions can be represented as version.Constraints.
 	exact *version.Version
+
+	forceCheckpoint bool
 }
 
 // NewVersionConstraints constructs a new version constraints, erroring if
@@ -22,22 +22,35 @@ type VersionConstraints struct {
 // hashicorp/go-version. If the special string "latest" is supplied, the version
 // is constrained to the latest version Checkpoint reports as available, which
 // is determined at runtime during Install.
-// TODO KEM: There is currently no way to find all versions of a product
-// satisfying a constraint string such as ">=0.13.5". Add a new endpoint to
-// Checkpoint that returns all available versions.
-func NewVersionConstraints(constraints string) (*VersionConstraints, error) {
+// Multiple constraints such as ">=1.2, < 1.0" are supported. Please see the
+// documentation for hashicorp/go-version for more details.
+func NewVersionConstraints(constraints string, forceCheckpoint bool) (*VersionConstraints, error) {
 	if constraints == "latest" {
 		return &VersionConstraints{
 			latest: true,
 		}, nil
 	}
 
-	exactVersion, err := version.NewSemver(constraints)
+	// we treat single exact version constraints as a special case
+	// to save a network request in Get
+	exactVersionRegexp := regexp.MustCompile(`^=?(` + version.SemverRegexpRaw + `)$`)
+	matches := exactVersionRegexp.FindStringSubmatch(constraints)
+	if matches != nil {
+		v, err := version.NewSemver(matches[2])
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing version %s: %s", constraints, err)
+		}
+		return &VersionConstraints{
+			exact: v,
+		}, nil
+	}
+
+	c, err := version.NewConstraint(constraints)
 	if err != nil {
-		return nil, errors.New("Error parsing version constraint %s: %w.\nPlease supply an exact semver version.")
+		return nil, fmt.Errorf("Error parsing version constraints %s: %s", constraints, err)
 	}
 
 	return &VersionConstraints{
-		exact: exactVersion,
+		constraints: c,
 	}, nil
 }

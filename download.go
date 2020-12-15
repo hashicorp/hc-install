@@ -13,8 +13,6 @@ import (
 	"golang.org/x/crypto/openpgp"
 )
 
-const releasesURL = "https://releases.hashicorp.com"
-
 func downloadWithVerification(ctx context.Context, product string, productVersion string, installDir string, appendUserAgent string) (string, error) {
 	osName := runtime.GOOS
 	archName := runtime.GOARCH

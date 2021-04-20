@@ -2,6 +2,7 @@ package hcinstall
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -35,6 +36,8 @@ type Client struct {
 	Getters []Getter
 
 	VersionConstraints *VersionConstraints
+
+	DisableVersionCheck bool
 }
 
 func (c *Client) Install(ctx context.Context) (string, error) {
@@ -53,9 +56,11 @@ func (c *Client) Install(ctx context.Context) (string, error) {
 		}
 
 		// assert version
-		if err := c.assertVersion(p); err != nil {
-			log.Printf("[WARN] Executable at %s did not satisfy version constraint: %s", p, err)
-			continue
+		if !c.DisableVersionCheck {
+			if err := c.assertVersion(p); err != nil {
+				log.Printf("[WARN] Executable at %s did not satisfy version constraint: %s", p, err)
+				continue
+			}
 		}
 
 		if p == "" {
@@ -77,6 +82,10 @@ func (c *Client) Install(ctx context.Context) (string, error) {
 // assertVersion returns an error if the product executable at execPath does not
 // satisfy the client VersionConstraints.
 func (c *Client) assertVersion(execPath string) error {
+	if c.VersionConstraints == nil {
+		return errors.New("Version check is enabled but VersionConstraints is set to nil. Either set DisableVersionCheck to true or specify valid VersionConstraints.")
+	}
+
 	var v *version.Version
 
 	actualVersion, err := c.Product.GetVersion(execPath)

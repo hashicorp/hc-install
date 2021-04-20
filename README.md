@@ -72,10 +72,10 @@ func main() {
 
 ## TODO before release
 
- - [ ] Fill in all products
- - [ ] Implement `GitGetter` and `UrlGetter`. 
- - [ ] Add Checkpoint endpoint to return all versions of a given product
-     - [ ] Implement version constraint parsing in `NewVersionConstraints()` (needs new Checkpoint endpoint)
- - [ ] Verify signatures and checksums for binaries found on the local filesystem, not just downloaded binaries
- - [ ] Full acceptance testing
- - [ ] CI
+ - Fill in all products
+ - Test whether Windows needs adjusted filenames
+ - Implement `UrlGetter`. 
+ - Implement "latest prerelease" for `ReleaseGetter`.
+ - Verify signatures and checksums for binaries found on the local filesystem, not just downloaded binaries
+ - Full acceptance testing
+ - CI

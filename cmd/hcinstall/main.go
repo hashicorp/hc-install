@@ -12,7 +12,6 @@ import (
 	"github.com/mitchellh/cli"
 
 	"github.com/hashicorp/hcinstall"
-	"github.com/hashicorp/hcinstall/gitref"
 )
 
 // TODO: add versioning to this?
@@ -44,14 +43,14 @@ func main() {
 func help() string {
 	return `Usage: hcinstall [--dir=DIR] VERSION-OR-REF
 
-  Downloads, verifies, and installs a official releases of the Terraform binary
+  Downloads, verifies, and installs a official releases of a binary
   from releases.hashicorp.com or downloads, compiles, and installs a version of
-  the Terraform binary from the GitHub repository.
+  the the binary from the GitHub repository.
 
   To download an official release, pass "latest" or a valid semantic versioning
   version string.
 
-  To download and compile a version of the Terraform binary from the GitHub
+  To download and compile a version of the binary from the GitHub
   repository pass a ref in the form "refs/...", some examples are shown below.
 
   If a binary is successfully installed, its path will be printed to stdout.
@@ -63,9 +62,9 @@ Options:
                  directory must exist.
 
 Examples:
-  hcinstall 0.12.28
-  hcinstall latest
-  hcinstall 0.13.0-beta3
+  hcinstall terraform 0.12.28
+  hcinstall consul latest
+  hcinstall terraform 0.13.0-beta3
   hcinstall --dir=/home/kmoe/bin 0.12.28
   hcinstall refs/heads/master
   hcinstall refs/tags/v0.12.29

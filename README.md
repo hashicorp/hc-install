@@ -68,14 +68,3 @@ func main() {
   fmt.Printf("Path to Terraform binary: %s", tfPath)
 }
 ```
-
-
-## TODO before release
-
- - Fill in all products
- - Test whether Windows needs adjusted filenames
- - Implement `UrlGetter`. 
- - Implement "latest prerelease" for `ReleaseGetter`.
- - Verify signatures and checksums for binaries found on the local filesystem, not just downloaded binaries
- - Full acceptance testing
- - CI

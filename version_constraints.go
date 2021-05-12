@@ -28,6 +28,7 @@ func NewVersionConstraints(constraints string, forceCheckpoint bool) (*VersionCo
 	if constraints == "latest" {
 		return &VersionConstraints{
 			latest: true,
+			forceCheckpoint: forceCheckpoint,
 		}, nil
 	}
 
@@ -42,6 +43,7 @@ func NewVersionConstraints(constraints string, forceCheckpoint bool) (*VersionCo
 		}
 		return &VersionConstraints{
 			exact: v,
+			forceCheckpoint: forceCheckpoint,
 		}, nil
 	}
 
@@ -52,5 +54,6 @@ func NewVersionConstraints(constraints string, forceCheckpoint bool) (*VersionCo
 
 	return &VersionConstraints{
 		constraints: c,
+		forceCheckpoint: forceCheckpoint,
 	}, nil
 }

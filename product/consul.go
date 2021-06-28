@@ -1,20 +1,29 @@
 package product
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"regexp"
 	"strings"
 
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/hc-install/internal/build"
 )
 
 var consulVersionOutputRe = regexp.MustCompile(`Consul ` + simpleVersionRe)
 
+var (
+	v1_16 = version.Must(version.NewVersion("1.16"))
+	// TODO: version.MustConstraint() ?
+	v1_16c, _ = version.NewConstraint("1.16")
+)
+
 var Consul = Product{
+	Name:       "consul",
 	BinaryName: "consul",
-	GetVersion: func(path string) (*version.Version, error) {
-		cmd := exec.Command(path, "version")
+	GetVersion: func(ctx context.Context, path string) (*version.Version, error) {
+		cmd := exec.CommandContext(ctx, path, "version")
 
 		out, err := cmd.Output()
 		if err != nil {
@@ -34,5 +43,9 @@ var Consul = Product{
 
 		return v, err
 	},
-	RepoURL: "https://github.com/hashicorp/consul.git",
+	BuildInstructions: &BuildInstructions{
+		GitRepoURL:    "https://github.com/hashicorp/consul.git",
+		PreCloneCheck: &build.GoIsInstalled{},
+		Build:         &build.GoBuild{Version: v1_16},
+	},
 }

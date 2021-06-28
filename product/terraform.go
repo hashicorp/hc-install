@@ -1,12 +1,14 @@
 package product
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"regexp"
 	"strings"
 
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/hc-install/internal/build"
 )
 
 var (
@@ -16,9 +18,10 @@ var (
 )
 
 var Terraform = Product{
+	Name:       "terraform",
 	BinaryName: "terraform",
-	GetVersion: func(path string) (*version.Version, error) {
-		cmd := exec.Command(path, "version")
+	GetVersion: func(ctx context.Context, path string) (*version.Version, error) {
+		cmd := exec.CommandContext(ctx, path, "version")
 
 		out, err := cmd.Output()
 		if err != nil {
@@ -37,7 +40,10 @@ var Terraform = Product{
 		}
 
 		return v, err
-
 	},
-	RepoURL: "https://github.com/hashicorp/terraform.git",
+	BuildInstructions: &BuildInstructions{
+		GitRepoURL:    "https://github.com/hashicorp/terraform.git",
+		PreCloneCheck: &build.GoIsInstalled{},
+		Build:         &build.GoBuild{DetectVendoring: true},
+	},
 }

@@ -1,4 +1,4 @@
-package products
+package product
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ var (
 )
 
 var Terraform = Product{
-	Name: "terraform",
+	BinaryName: "terraform",
 	GetVersion: func(path string) (*version.Version, error) {
 		cmd := exec.Command(path, "version")
 

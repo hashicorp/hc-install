@@ -1,4 +1,4 @@
-package products
+package product
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 var consulVersionOutputRe = regexp.MustCompile(`Consul ` + simpleVersionRe)
 
 var Consul = Product{
-	Name: "consul",
+	BinaryName: "consul",
 	GetVersion: func(path string) (*version.Version, error) {
 		cmd := exec.Command(path, "version")
 

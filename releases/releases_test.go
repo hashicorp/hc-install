@@ -43,7 +43,7 @@ func TestLatestVersion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !latestConstraint.Check(v.Core()) {
+	if !latestConstraint.Check(v) {
 		t.Fatalf("versions don't match (expected: %s, installed: %s)",
 			latestConstraint, v)
 	}

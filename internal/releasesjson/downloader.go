@@ -17,8 +17,9 @@ import (
 )
 
 type Downloader struct {
-	Logger         *log.Logger
-	VerifyChecksum bool
+	Logger           *log.Logger
+	VerifyChecksum   bool
+	ArmoredPublicKey string
 }
 
 func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, dstDir string) error {
@@ -34,8 +35,9 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 	var verifiedChecksum HashSum
 	if d.VerifyChecksum {
 		v := &ChecksumDownloader{
-			ProductVersion: pv,
-			Logger:         d.Logger,
+			ProductVersion:   pv,
+			Logger:           d.Logger,
+			ArmoredPublicKey: d.ArmoredPublicKey,
 		}
 		verifiedChecksums, err := v.DownloadAndVerifyChecksums()
 		if err != nil {
@@ -49,7 +51,10 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 	}
 
 	client := httpclient.NewHTTPClient()
-	resp, err := client.Get(pb.URL)
+
+	archiveURL := pb.URL
+	d.Logger.Printf("downloading archive from %s", archiveURL)
+	resp, err := client.Get(archiveURL)
 	if err != nil {
 		return err
 	}
@@ -119,6 +124,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 			return err
 		}
 
+		d.Logger.Printf("unpacking %s to %s", f.Name, dstDir)
 		dstPath := filepath.Join(dstDir, f.Name)
 		dstFile, err := os.Create(dstPath)
 		if err != nil {

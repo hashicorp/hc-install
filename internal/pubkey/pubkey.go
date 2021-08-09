@@ -1,9 +1,8 @@
-package releasesjson
+package pubkey
 
 const (
 	// See https://www.hashicorp.com/security
-	keyID     = `72D7468F`
-	publicKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
+	DefaultPublicKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQINBGB9+xkBEACabYZOWKmgZsHTdRDiyPJxhbuUiKX65GUWkyRMJKi/1dviVxOX
 PG6hBPtF48IFnVgxKpIb7G6NjBousAV+CuLlv5yqFKpOZEGC6sBV+Gx8Vu1CICpl

@@ -17,10 +17,22 @@ type Versions struct {
 	Product     product.Product
 	Constraints version.Constraints
 
-	ListTimeout              time.Duration
-	InstallTimeout           time.Duration
-	InstallDir               string
+	ListTimeout time.Duration
+
+	// Install represents configuration for installation of any listed version
+	Install InstallationOptions
+}
+
+type InstallationOptions struct {
+	Timeout time.Duration
+	Dir     string
+
 	SkipChecksumVerification bool
+
+	// ArmoredPublicKey is a public PGP key in ASCII/armor format to use
+	// instead of built-in pubkey to verify signature of downloaded checksums
+	// during installation
+	ArmoredPublicKey string
 }
 
 func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
@@ -56,10 +68,11 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 		ev := &ExactVersion{
 			Product:    v.Product,
 			Version:    installableVersion,
-			InstallDir: v.InstallDir,
-			Timeout:    v.InstallTimeout,
+			InstallDir: v.Install.Dir,
+			Timeout:    v.Install.Timeout,
 
-			SkipChecksumVerification: v.SkipChecksumVerification,
+			ArmoredPublicKey:         v.Install.ArmoredPublicKey,
+			SkipChecksumVerification: v.Install.SkipChecksumVerification,
 		}
 
 		installables = append(installables, ev)

@@ -1,0 +1,50 @@
+project_name: terraform
+env:
+  - CGO_ENABLED=0
+
+snapshot:
+  name_template: '{{ .Env.VERSION }}'
+
+builds:
+  -
+    mod_timestamp: '{{ .CommitTimestamp }}'
+    flags:
+      - -trimpath
+    ldflags:
+      - '-s -w -X "main.version={{ .Env.VERSION }}"'
+    goarch:
+      - amd64
+    goos:
+      - linux
+      - windows
+      - darwin
+
+archives:
+  -
+    format: zip
+    name_template: '{{ .ProjectName }}_{{ .Env.VERSION }}_{{ .Os }}_{{ .Arch }}'
+    wrap_in_directory: false
+    files: # Avoid packaging any extra (default) files
+      - none*
+
+checksum:
+  name_template: '{{ .ProjectName }}_{{ .Env.VERSION }}_SHA256SUMS'
+  algorithm: sha256
+
+signs:
+  -
+    id: with_key_id
+    signature: "${artifact}.2FCA0A85.sig"
+    args: ["--batch", "--no-tty", "-u", "2FCA0A85", "--output", "${artifact}.2FCA0A85.sig", "--detach-sign", "${artifact}"]
+    artifacts: checksum
+  -
+    id: default
+    signature: "${artifact}.sig"
+    args: ["--batch", "--no-tty", "-u", "2FCA0A85", "--output", "${artifact}.sig", "--detach-sign", "${artifact}"]
+    artifacts: checksum
+
+release:
+  disable: true
+
+changelog:
+  skip: true

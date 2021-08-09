@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -20,6 +21,7 @@ type Downloader struct {
 	Logger           *log.Logger
 	VerifyChecksum   bool
 	ArmoredPublicKey string
+	BaseURL          string
 }
 
 func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, dstDir string) error {
@@ -35,6 +37,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 	var verifiedChecksum HashSum
 	if d.VerifyChecksum {
 		v := &ChecksumDownloader{
+			BaseURL:          d.BaseURL,
 			ProductVersion:   pv,
 			Logger:           d.Logger,
 			ArmoredPublicKey: d.ArmoredPublicKey,
@@ -53,6 +56,23 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 	client := httpclient.NewHTTPClient()
 
 	archiveURL := pb.URL
+	if d.BaseURL != "" {
+		// ensure that absolute download links from mocked responses
+		// are still pointing to the mock server if one is set
+		baseURL, err := url.Parse(d.BaseURL)
+		if err != nil {
+			return err
+		}
+
+		u, err := url.Parse(archiveURL)
+		if err != nil {
+			return err
+		}
+		u.Scheme = baseURL.Scheme
+		u.Host = baseURL.Host
+		archiveURL = u.String()
+	}
+
 	d.Logger.Printf("downloading archive from %s", archiveURL)
 	resp, err := client.Get(archiveURL)
 	if err != nil {

@@ -30,6 +30,7 @@ type LatestVersion struct {
 	// instead of built-in pubkey to verify signature of downloaded checksums
 	ArmoredPublicKey string
 
+	apiBaseURL    string
 	logger        *log.Logger
 	pathsToRemove []string
 }
@@ -87,6 +88,9 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 	lv.log().Printf("will install into dir at %s", dstDir)
 
 	rels := rjson.NewReleases()
+	if lv.apiBaseURL != "" {
+		rels.BaseURL = lv.apiBaseURL
+	}
 	rels.SetLogger(lv.log())
 	versions, err := rels.ListProductVersions(ctx, lv.Product.Name)
 	if err != nil {
@@ -109,6 +113,9 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 	}
 	if lv.ArmoredPublicKey != "" {
 		d.ArmoredPublicKey = lv.ArmoredPublicKey
+	}
+	if lv.apiBaseURL != "" {
+		d.BaseURL = lv.apiBaseURL
 	}
 	err = d.DownloadAndUnpack(ctx, versionToInstall, dstDir)
 	if err != nil {

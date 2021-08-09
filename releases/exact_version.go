@@ -30,6 +30,7 @@ type ExactVersion struct {
 	// instead of built-in pubkey to verify signature of downloaded checksums
 	ArmoredPublicKey string
 
+	apiBaseURL    string
 	logger        *log.Logger
 	pathsToRemove []string
 }
@@ -91,6 +92,9 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 	ev.log().Printf("will install into dir at %s", dstDir)
 
 	rels := rjson.NewReleases()
+	if ev.apiBaseURL != "" {
+		rels.BaseURL = ev.apiBaseURL
+	}
 	rels.SetLogger(ev.log())
 	pv, err := rels.GetProductVersion(ctx, ev.Product.Name, ev.Version)
 	if err != nil {
@@ -104,6 +108,9 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 	}
 	if ev.ArmoredPublicKey != "" {
 		d.ArmoredPublicKey = ev.ArmoredPublicKey
+	}
+	if ev.apiBaseURL != "" {
+		d.BaseURL = ev.apiBaseURL
 	}
 
 	err = d.DownloadAndUnpack(ctx, pv, dstDir)

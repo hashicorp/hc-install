@@ -17,6 +17,8 @@ type ChecksumDownloader struct {
 	ProductVersion   *ProductVersion
 	Logger           *log.Logger
 	ArmoredPublicKey string
+
+	BaseURL string
 }
 
 type ChecksumFileMap map[string]HashSum
@@ -46,7 +48,7 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums() (ChecksumFileMap, err
 	}
 
 	client := httpclient.NewHTTPClient()
-	sigURL := fmt.Sprintf("%s/%s/%s/%s", baseURL,
+	sigURL := fmt.Sprintf("%s/%s/%s/%s", cd.BaseURL,
 		cd.ProductVersion.Name,
 		cd.ProductVersion.Version,
 		sigFilename)
@@ -57,7 +59,7 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums() (ChecksumFileMap, err
 	}
 	defer sigResp.Body.Close()
 
-	shasumsURL := fmt.Sprintf("%s/%s/%s/%s", baseURL,
+	shasumsURL := fmt.Sprintf("%s/%s/%s/%s", cd.BaseURL,
 		cd.ProductVersion.Name,
 		cd.ProductVersion.Version,
 		cd.ProductVersion.SHASUMS)

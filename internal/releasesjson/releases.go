@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/hc-install/internal/httpclient"
 )
 
-var baseURL = "https://releases.hashicorp.com"
+const defaultBaseURL = "https://releases.hashicorp.com"
 
 // Product is a top-level product like "Consul" or "Nomad". A Product may have
 // one or more versions.
@@ -54,12 +54,14 @@ type ProductBuild struct {
 }
 
 type Releases struct {
-	logger *log.Logger
+	logger  *log.Logger
+	BaseURL string
 }
 
 func NewReleases() *Releases {
 	return &Releases{
-		logger: log.New(ioutil.Discard, "", 0),
+		logger:  log.New(ioutil.Discard, "", 0),
+		BaseURL: defaultBaseURL,
 	}
 }
 
@@ -70,7 +72,7 @@ func (r *Releases) SetLogger(logger *log.Logger) {
 func (r *Releases) ListProductVersions(ctx context.Context, productName string) (map[string]*ProductVersion, error) {
 	client := httpclient.NewHTTPClient()
 
-	productIndexURL := fmt.Sprintf("%s/%s/index.json", baseURL, productName)
+	productIndexURL := fmt.Sprintf("%s/%s/index.json", r.BaseURL, productName)
 	r.logger.Printf("requesting versions from %s", productIndexURL)
 
 	resp, err := client.Get(productIndexURL)
@@ -89,7 +91,7 @@ func (r *Releases) ListProductVersions(ctx context.Context, productName string) 
 	p := Product{}
 	err = json.Unmarshal(body, &p)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal %q", string(body))
 	}
 
 	for rawVersion := range p.Versions {
@@ -117,7 +119,7 @@ func (r *Releases) GetProductVersion(ctx context.Context, product string, versio
 
 	client := httpclient.NewHTTPClient()
 
-	indexURL := fmt.Sprintf("%s/%s/%s/index.json", baseURL, product, version)
+	indexURL := fmt.Sprintf("%s/%s/%s/index.json", r.BaseURL, product, version)
 	r.logger.Printf("requesting version from %s", indexURL)
 
 	resp, err := client.Get(indexURL)
@@ -136,7 +138,7 @@ func (r *Releases) GetProductVersion(ctx context.Context, product string, versio
 	pv := &ProductVersion{}
 	err = json.Unmarshal(body, pv)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal %q", string(body))
 	}
 
 	return pv, nil

@@ -2,6 +2,9 @@ package releases
 
 import (
 	"context"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/hashicorp/go-version"
@@ -49,6 +52,72 @@ func TestLatestVersion(t *testing.T) {
 	}
 }
 
+func TestLatestVersion_basic(t *testing.T) {
+	mockApiRoot := filepath.Join("testdata", "mock_api_tf_0_14_with_prereleases")
+	lv := &LatestVersion{
+		Product:          product.Terraform,
+		ArmoredPublicKey: getTestPubKey(t),
+		apiBaseURL:       testutil.NewTestServer(t, mockApiRoot).URL,
+	}
+	lv.SetLogger(testutil.TestLogger())
+
+	ctx := context.Background()
+
+	execPath, err := lv.Install(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { lv.Remove(ctx) })
+
+	v, err := product.Terraform.GetVersion(ctx, execPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedVersion, err := version.NewVersion("0.14.11")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !expectedVersion.Equal(v) {
+		t.Fatalf("versions don't match (expected: %s, installed: %s)",
+			expectedVersion, v)
+	}
+}
+
+func TestLatestVersion_prereleases(t *testing.T) {
+	mockApiRoot := filepath.Join("testdata", "mock_api_tf_0_14_with_prereleases")
+
+	lv := &LatestVersion{
+		Product:            product.Terraform,
+		IncludePrereleases: true,
+		ArmoredPublicKey:   getTestPubKey(t),
+		apiBaseURL:         testutil.NewTestServer(t, mockApiRoot).URL,
+	}
+	lv.SetLogger(testutil.TestLogger())
+
+	ctx := context.Background()
+
+	execPath, err := lv.Install(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { lv.Remove(ctx) })
+
+	v, err := product.Terraform.GetVersion(ctx, execPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedVersion, err := version.NewVersion("0.15.0-rc2")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !expectedVersion.Equal(v) {
+		t.Fatalf("versions don't match (expected: %s, installed: %s)",
+			expectedVersion, v)
+	}
+}
+
 func TestExactVersion(t *testing.T) {
 	testutil.EndToEndTest(t)
 
@@ -79,4 +148,13 @@ func TestExactVersion(t *testing.T) {
 		t.Fatalf("versions don't match (expected: %s, installed: %s)",
 			versionToInstall, v)
 	}
+}
+
+func getTestPubKey(t *testing.T) string {
+	f, err := os.Open(filepath.Join("testdata", "2FCA0A85.pub"))
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(b)
 }

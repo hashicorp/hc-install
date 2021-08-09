@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/go-version"
 	rjson "github.com/hashicorp/hc-install/internal/releasesjson"
+	"github.com/hashicorp/hc-install/internal/validators"
 	"github.com/hashicorp/hc-install/product"
 	"github.com/hashicorp/hc-install/src"
 )
@@ -36,8 +37,8 @@ type InstallationOptions struct {
 }
 
 func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
-	if v.Product.Name == "" {
-		return nil, fmt.Errorf("unknown product name")
+	if !validators.IsProductNameValid(v.Product.Name) {
+		return nil, fmt.Errorf("invalid product name: %q", v.Product.Name)
 	}
 
 	timeout := defaultListTimeout

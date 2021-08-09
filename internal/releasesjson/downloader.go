@@ -29,9 +29,10 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 		return fmt.Errorf("no builds found for %s %s", pv.Name, pv.Version)
 	}
 
-	pb, ok := pv.Builds.BuildForOsArch(runtime.GOOS, runtime.GOARCH)
+	pb, ok := pv.Builds.FilterBuild(runtime.GOOS, runtime.GOARCH, "zip")
 	if !ok {
-		return fmt.Errorf("no build found for %s/%s", runtime.GOOS, runtime.GOARCH)
+		return fmt.Errorf("no ZIP archive found for %s %s %s/%s",
+			pv.Name, pv.Version, runtime.GOOS, runtime.GOARCH)
 	}
 
 	var verifiedChecksum HashSum
@@ -78,14 +79,15 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 	if err != nil {
 		return err
 	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("failed to download ZIP archive from %q: %s", archiveURL, resp.Status)
+	}
+
 	defer resp.Body.Close()
 
 	var pkgReader io.Reader
 	pkgReader = resp.Body
-
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("unexpected response code (%d)", resp.StatusCode)
-	}
 
 	contentType := resp.Header.Get("content-type")
 	if contentType != "application/zip" {

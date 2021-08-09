@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/hc-install/internal/pubkey"
 	rjson "github.com/hashicorp/hc-install/internal/releasesjson"
 	isrc "github.com/hashicorp/hc-install/internal/src"
+	"github.com/hashicorp/hc-install/internal/validators"
 	"github.com/hashicorp/hc-install/product"
 )
 
@@ -51,12 +52,12 @@ func (ev *ExactVersion) log() *log.Logger {
 }
 
 func (ev *ExactVersion) Validate() error {
-	if ev.Product.Name == "" {
-		return fmt.Errorf("unknown product name")
+	if !validators.IsProductNameValid(ev.Product.Name) {
+		return fmt.Errorf("invalid product name: %q", ev.Product.Name)
 	}
 
-	if ev.Product.BinaryName == "" {
-		return fmt.Errorf("unknown binary name")
+	if !validators.IsBinaryNameValid(ev.Product.BinaryName) {
+		return fmt.Errorf("invalid binary name: %q", ev.Product.BinaryName)
 	}
 
 	if ev.Version == nil {

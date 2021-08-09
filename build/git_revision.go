@@ -11,6 +11,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	isrc "github.com/hashicorp/hc-install/internal/src"
+	"github.com/hashicorp/hc-install/internal/validators"
 	"github.com/hashicorp/hc-install/product"
 )
 
@@ -49,11 +50,11 @@ func (gr *GitRevision) log() *log.Logger {
 }
 
 func (gr *GitRevision) Validate() error {
-	if gr.Product.Name == "" {
-		return fmt.Errorf("unknown product name")
+	if !validators.IsProductNameValid(gr.Product.Name) {
+		return fmt.Errorf("invalid product name: %q", gr.Product.Name)
 	}
-	if gr.Product.BinaryName == "" {
-		return fmt.Errorf("unknown binary name")
+	if !validators.IsBinaryNameValid(gr.Product.BinaryName) {
+		return fmt.Errorf("invalid binary name: %q", gr.Product.BinaryName)
 	}
 
 	bi := gr.Product.BuildInstructions

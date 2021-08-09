@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/url"
 	"strings"
 
 	"github.com/hashicorp/hc-install/internal/httpclient"
@@ -49,25 +50,35 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums() (ChecksumFileMap, err
 
 	client := httpclient.NewHTTPClient()
 	sigURL := fmt.Sprintf("%s/%s/%s/%s", cd.BaseURL,
-		cd.ProductVersion.Name,
-		cd.ProductVersion.Version,
-		sigFilename)
+		url.PathEscape(cd.ProductVersion.Name),
+		url.PathEscape(cd.ProductVersion.Version),
+		url.PathEscape(sigFilename))
 	cd.Logger.Printf("downloading signature from %s", sigURL)
 	sigResp, err := client.Get(sigURL)
 	if err != nil {
 		return nil, err
 	}
+
+	if sigResp.StatusCode != 200 {
+		return nil, fmt.Errorf("failed to download signature from %q: %s", sigURL, sigResp.Status)
+	}
+
 	defer sigResp.Body.Close()
 
 	shasumsURL := fmt.Sprintf("%s/%s/%s/%s", cd.BaseURL,
-		cd.ProductVersion.Name,
-		cd.ProductVersion.Version,
-		cd.ProductVersion.SHASUMS)
+		url.PathEscape(cd.ProductVersion.Name),
+		url.PathEscape(cd.ProductVersion.Version),
+		url.PathEscape(cd.ProductVersion.SHASUMS))
 	cd.Logger.Printf("downloading checksums from %s", shasumsURL)
 	sumsResp, err := client.Get(shasumsURL)
 	if err != nil {
 		return nil, err
 	}
+
+	if sumsResp.StatusCode != 200 {
+		return nil, fmt.Errorf("failed to download checksums from %q: %s", shasumsURL, sumsResp.Status)
+	}
+
 	defer sumsResp.Body.Close()
 
 	var shaSums strings.Builder

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/url"
+	"strings"
 
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hc-install/internal/httpclient"
@@ -33,9 +35,9 @@ type ProductVersion struct {
 
 type ProductBuilds []*ProductBuild
 
-func (pbs ProductBuilds) BuildForOsArch(os string, arch string) (*ProductBuild, bool) {
+func (pbs ProductBuilds) FilterBuild(os string, arch string, suffix string) (*ProductBuild, bool) {
 	for _, pb := range pbs {
-		if pb.OS == os && pb.Arch == arch {
+		if pb.OS == os && pb.Arch == arch && strings.HasSuffix(pb.Filename, suffix) {
 			return pb, true
 		}
 	}
@@ -72,13 +74,26 @@ func (r *Releases) SetLogger(logger *log.Logger) {
 func (r *Releases) ListProductVersions(ctx context.Context, productName string) (map[string]*ProductVersion, error) {
 	client := httpclient.NewHTTPClient()
 
-	productIndexURL := fmt.Sprintf("%s/%s/index.json", r.BaseURL, productName)
+	productIndexURL := fmt.Sprintf("%s/%s/index.json",
+		r.BaseURL,
+		url.PathEscape(productName))
 	r.logger.Printf("requesting versions from %s", productIndexURL)
 
 	resp, err := client.Get(productIndexURL)
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("failed to obtain product versions from %q: %s ",
+			productIndexURL, resp.Status)
+	}
+
+	contentType := resp.Header.Get("content-type")
+	if contentType != "application/json" {
+		return nil, fmt.Errorf("unexpected Content-Type: %q", contentType)
+	}
+
 	defer resp.Body.Close()
 
 	r.logger.Printf("received %s", resp.Status)
@@ -91,7 +106,8 @@ func (r *Releases) ListProductVersions(ctx context.Context, productName string) 
 	p := Product{}
 	err = json.Unmarshal(body, &p)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal %q", string(body))
+		return nil, fmt.Errorf("%w: failed to unmarshal: %q",
+			err, string(body))
 	}
 
 	for rawVersion := range p.Versions {
@@ -119,13 +135,27 @@ func (r *Releases) GetProductVersion(ctx context.Context, product string, versio
 
 	client := httpclient.NewHTTPClient()
 
-	indexURL := fmt.Sprintf("%s/%s/%s/index.json", r.BaseURL, product, version)
+	indexURL := fmt.Sprintf("%s/%s/%s/index.json",
+		r.BaseURL,
+		url.PathEscape(product),
+		url.PathEscape(version.String()))
 	r.logger.Printf("requesting version from %s", indexURL)
 
 	resp, err := client.Get(indexURL)
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("failed to obtain product version from %q: %s ",
+			indexURL, resp.Status)
+	}
+
+	contentType := resp.Header.Get("content-type")
+	if contentType != "application/json" {
+		return nil, fmt.Errorf("unexpected Content-Type: %q", contentType)
+	}
+
 	defer resp.Body.Close()
 
 	r.logger.Printf("received %s", resp.Status)
@@ -138,7 +168,8 @@ func (r *Releases) GetProductVersion(ctx context.Context, product string, versio
 	pv := &ProductVersion{}
 	err = json.Unmarshal(body, pv)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal %q", string(body))
+		return nil, fmt.Errorf("%w: failed to unmarshal response: %q",
+			err, string(body))
 	}
 
 	return pv, nil

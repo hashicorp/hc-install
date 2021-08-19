@@ -100,7 +100,7 @@ func (r *Releases) ListProductVersions(ctx context.Context, productName string) 
 			continue
 		}
 
-		if !isVersionSupported(v) {
+		if ok, _ := versionIsSupported(v); !ok {
 			// Remove (currently unsupported) enterprise
 			// version and any other "custom" build
 			delete(p.Versions, rawVersion)
@@ -111,9 +111,8 @@ func (r *Releases) ListProductVersions(ctx context.Context, productName string) 
 }
 
 func (r *Releases) GetProductVersion(ctx context.Context, product string, version *version.Version) (*ProductVersion, error) {
-	if !isVersionSupported(version) {
-		return nil, fmt.Errorf("%s %s cannot be obtained (enterprise versions are not supported)",
-			product, version.String())
+	if ok, err := versionIsSupported(version); !ok {
+		return nil, fmt.Errorf("%s: %w", product, err)
 	}
 
 	client := httpclient.NewHTTPClient()
@@ -143,6 +142,11 @@ func (r *Releases) GetProductVersion(ctx context.Context, product string, versio
 	return pv, nil
 }
 
-func isVersionSupported(v *version.Version) bool {
-	return v.Metadata() == ""
+func versionIsSupported(v *version.Version) (bool, error) {
+	isSupported := v.Metadata() == ""
+	if !isSupported {
+		return false, fmt.Errorf("cannot obtain %s (enterprise versions are not supported)",
+			v.String())
+	}
+	return true, nil
 }

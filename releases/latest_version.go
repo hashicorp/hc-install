@@ -17,10 +17,11 @@ import (
 )
 
 type LatestVersion struct {
-	Product     product.Product
-	Constraints version.Constraints
-	InstallDir  string
-	Timeout     time.Duration
+	Product            product.Product
+	Constraints        version.Constraints
+	InstallDir         string
+	Timeout            time.Duration
+	IncludePrereleases bool
 
 	SkipChecksumVerification bool
 
@@ -91,7 +92,7 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("no versions found for %q", lv.Product.Name)
 	}
 
-	versionToInstall, ok := findLatestMatchingVersion(versions, lv.Constraints)
+	versionToInstall, ok := lv.findLatestMatchingVersion(versions, lv.Constraints)
 	if !ok {
 		return "", fmt.Errorf("no matching version found for %q", lv.Constraints)
 	}
@@ -130,13 +131,19 @@ func (lv *LatestVersion) Remove(ctx context.Context) error {
 	return nil
 }
 
-func findLatestMatchingVersion(pvs map[string]*rjson.ProductVersion, vc version.Constraints) (*rjson.ProductVersion, bool) {
+func (lv *LatestVersion) findLatestMatchingVersion(pvs map[string]*rjson.ProductVersion, vc version.Constraints) (*rjson.ProductVersion, bool) {
 	versions := make(version.Collection, 0)
 	for _, pv := range pvs {
 		v, err := version.NewVersion(pv.Version)
 		if err != nil {
 			continue
 		}
+
+		if !lv.IncludePrereleases && v.Prerelease() != "" {
+			// skip prereleases if desired
+			continue
+		}
+
 		versions = append(versions, v)
 	}
 

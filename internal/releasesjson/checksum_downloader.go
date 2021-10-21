@@ -14,8 +14,9 @@ import (
 )
 
 type ChecksumDownloader struct {
-	ProductVersion *ProductVersion
-	Logger         *log.Logger
+	ProductVersion   *ProductVersion
+	Logger           *log.Logger
+	ArmoredPublicKey string
 }
 
 type ChecksumFileMap map[string]HashSum
@@ -39,7 +40,7 @@ func HashSumFromHexDigest(hexDigest string) (HashSum, error) {
 }
 
 func (cd *ChecksumDownloader) DownloadAndVerifyChecksums() (ChecksumFileMap, error) {
-	sigFilename, err := findSigFilename(cd.ProductVersion)
+	sigFilename, err := cd.findSigFilename(cd.ProductVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -49,6 +50,7 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums() (ChecksumFileMap, err
 		cd.ProductVersion.Name,
 		cd.ProductVersion.Version,
 		sigFilename)
+	cd.Logger.Printf("downloading signature from %s", sigURL)
 	sigResp, err := client.Get(sigURL)
 	if err != nil {
 		return nil, err
@@ -59,6 +61,7 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums() (ChecksumFileMap, err
 		cd.ProductVersion.Name,
 		cd.ProductVersion.Version,
 		cd.ProductVersion.SHASUMS)
+	cd.Logger.Printf("downloading checksums from %s", shasumsURL)
 	sumsResp, err := client.Get(shasumsURL)
 	if err != nil {
 		return nil, err
@@ -68,7 +71,7 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums() (ChecksumFileMap, err
 	var shaSums strings.Builder
 	sumsReader := io.TeeReader(sumsResp.Body, &shaSums)
 
-	err = verifySumsSignature(sumsReader, sigResp.Body)
+	err = cd.verifySumsSignature(sumsReader, sigResp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -124,26 +127,38 @@ func compareChecksum(logger *log.Logger, r io.Reader, verifiedHashSum HashSum) e
 	return nil
 }
 
-func verifySumsSignature(checksums, signature io.Reader) error {
-	el, err := openpgp.ReadArmoredKeyRing(strings.NewReader(publicKey))
+func (cd *ChecksumDownloader) verifySumsSignature(checksums, signature io.Reader) error {
+	el, err := cd.keyEntityList()
 	if err != nil {
 		return err
 	}
 
 	_, err = openpgp.CheckDetachedSignature(el, checksums, signature)
+	if err != nil {
+		return fmt.Errorf("unable to verify checksums signature: %w", err)
+	}
 
-	return err
+	cd.Logger.Printf("checksum signature is valid")
+
+	return nil
 }
 
-func findSigFilename(pv *ProductVersion) (string, error) {
+func (cd *ChecksumDownloader) findSigFilename(pv *ProductVersion) (string, error) {
 	sigFiles := pv.SHASUMSSigs
 	if len(sigFiles) == 0 {
 		sigFiles = []string{pv.SHASUMSSig}
 	}
 
+	keyIds, err := cd.pubKeyIds()
+	if err != nil {
+		return "", err
+	}
+
 	for _, filename := range sigFiles {
-		if strings.HasSuffix(filename, fmt.Sprintf("_SHA256SUMS.%s.sig", keyID)) {
-			return filename, nil
+		for _, keyID := range keyIds {
+			if strings.HasSuffix(filename, fmt.Sprintf("_SHA256SUMS.%s.sig", keyID)) {
+				return filename, nil
+			}
 		}
 		if strings.HasSuffix(filename, "_SHA256SUMS.sig") {
 			return filename, nil
@@ -151,4 +166,25 @@ func findSigFilename(pv *ProductVersion) (string, error) {
 	}
 
 	return "", fmt.Errorf("no suitable sig file found")
+}
+
+func (cd *ChecksumDownloader) pubKeyIds() ([]string, error) {
+	entityList, err := cd.keyEntityList()
+	if err != nil {
+		return nil, err
+	}
+
+	fingerprints := make([]string, 0)
+	for _, entity := range entityList {
+		fingerprints = append(fingerprints, entity.PrimaryKey.KeyIdShortString())
+	}
+
+	return fingerprints, nil
+}
+
+func (cd *ChecksumDownloader) keyEntityList() (openpgp.EntityList, error) {
+	if cd.ArmoredPublicKey == "" {
+		return nil, fmt.Errorf("no public key provided")
+	}
+	return openpgp.ReadArmoredKeyRing(strings.NewReader(cd.ArmoredPublicKey))
 }

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/hc-install/internal/pubkey"
 	rjson "github.com/hashicorp/hc-install/internal/releasesjson"
 	isrc "github.com/hashicorp/hc-install/internal/src"
 	"github.com/hashicorp/hc-install/product"
@@ -24,6 +25,10 @@ type ExactVersion struct {
 	Timeout    time.Duration
 
 	SkipChecksumVerification bool
+
+	// ArmoredPublicKey is a public PGP key in ASCII/armor format to use
+	// instead of built-in pubkey to verify signature of downloaded checksums
+	ArmoredPublicKey string
 
 	logger        *log.Logger
 	pathsToRemove []string
@@ -93,9 +98,14 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 	}
 
 	d := &rjson.Downloader{
-		Logger:         ev.log(),
-		VerifyChecksum: !ev.SkipChecksumVerification,
+		Logger:           ev.log(),
+		VerifyChecksum:   !ev.SkipChecksumVerification,
+		ArmoredPublicKey: pubkey.DefaultPublicKey,
 	}
+	if ev.ArmoredPublicKey != "" {
+		d.ArmoredPublicKey = ev.ArmoredPublicKey
+	}
+
 	err = d.DownloadAndUnpack(ctx, pv, dstDir)
 	if err != nil {
 		return "", err

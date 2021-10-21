@@ -12,6 +12,7 @@ import (
 
 	checkpoint "github.com/hashicorp/go-checkpoint"
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/hc-install/internal/pubkey"
 	rjson "github.com/hashicorp/hc-install/internal/releasesjson"
 	isrc "github.com/hashicorp/hc-install/internal/src"
 	"github.com/hashicorp/hc-install/product"
@@ -29,6 +30,10 @@ type LatestVersion struct {
 	Timeout                  time.Duration
 	SkipChecksumVerification bool
 	InstallDir               string
+
+	// ArmoredPublicKey is a public PGP key in ASCII/armor format to use
+	// instead of built-in pubkey to verify signature of downloaded checksums
+	ArmoredPublicKey string
 
 	logger        *log.Logger
 	pathsToRemove []string
@@ -109,8 +114,12 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 	}
 
 	d := &rjson.Downloader{
-		Logger:         lv.log(),
-		VerifyChecksum: !lv.SkipChecksumVerification,
+		Logger:           lv.log(),
+		VerifyChecksum:   !lv.SkipChecksumVerification,
+		ArmoredPublicKey: pubkey.DefaultPublicKey,
+	}
+	if lv.ArmoredPublicKey != "" {
+		d.ArmoredPublicKey = lv.ArmoredPublicKey
 	}
 	err = d.DownloadAndUnpack(ctx, pv, dstDir)
 	if err != nil {

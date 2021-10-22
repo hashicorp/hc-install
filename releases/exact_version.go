@@ -106,6 +106,7 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		Logger:           ev.log(),
 		VerifyChecksum:   !ev.SkipChecksumVerification,
 		ArmoredPublicKey: pubkey.DefaultPublicKey,
+		BaseURL:          rels.BaseURL,
 	}
 	if ev.ArmoredPublicKey != "" {
 		d.ArmoredPublicKey = ev.ArmoredPublicKey

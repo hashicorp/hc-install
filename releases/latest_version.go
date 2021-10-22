@@ -111,6 +111,7 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 		Logger:           lv.log(),
 		VerifyChecksum:   !lv.SkipChecksumVerification,
 		ArmoredPublicKey: pubkey.DefaultPublicKey,
+		BaseURL:          rels.BaseURL,
 	}
 	if lv.ArmoredPublicKey != "" {
 		d.ArmoredPublicKey = lv.ArmoredPublicKey

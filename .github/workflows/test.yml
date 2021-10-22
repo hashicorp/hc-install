@@ -30,7 +30,8 @@ jobs:
 
     - name: Go fmt
       run: |
-        gofmt -s -l .
+        # exit 1 if any files need go fmt
+        test -z $(gofmt -s -l .)
 
     - name: Go vet
       run: |

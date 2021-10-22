@@ -63,6 +63,5 @@ jobs:
 
     - name: Go tests
       timeout-minutes: 10
-      env:
       run: |
         go test -v ./...

@@ -17,7 +17,7 @@ import (
 
 var (
 	cloneTimeout  = 1 * time.Minute
-	buildTimeout  = 2 * time.Minute
+	buildTimeout  = 5 * time.Minute
 	discardLogger = log.New(ioutil.Discard, "", 0)
 )
 

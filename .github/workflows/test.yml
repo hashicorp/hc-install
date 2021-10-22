@@ -22,7 +22,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: '1.16'
+        go-version: '1.17'
       id: go
 
     - name: Check out code into the Go module directory
@@ -30,11 +30,12 @@ jobs:
 
     - name: Go fmt
       run: |
-        make fmt
+        # exit 1 if any files need go fmt
+        test -z $(gofmt -s -l .)
 
     - name: Go vet
       run: |
-        make vet
+        go vet ./...
 
     - name: Build
       run: |
@@ -55,7 +56,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: '1.16'
+        go-version: '1.17'
       id: go
 
     - name: Check out code into the Go module directory
@@ -63,6 +64,5 @@ jobs:
 
     - name: Go tests
       timeout-minutes: 10
-      env:
       run: |
         go test -v ./...

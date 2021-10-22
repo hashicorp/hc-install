@@ -30,11 +30,11 @@ jobs:
 
     - name: Go fmt
       run: |
-        make fmt
+        gofmt -s -l .
 
     - name: Go vet
       run: |
-        make vet
+        go vet ./...
 
     - name: Build
       run: |

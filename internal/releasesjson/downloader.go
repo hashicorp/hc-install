@@ -90,9 +90,9 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 	pkgReader = resp.Body
 
 	contentType := resp.Header.Get("content-type")
-	if contentType != "application/zip" {
-		return fmt.Errorf("unexpected content-type: %s (expected application/zip)",
-			contentType)
+	if !contentTypeIsZip(contentType) {
+		return fmt.Errorf("unexpected content-type: %s (expected any of %q)",
+			contentType, zipMimeTypes)
 	}
 
 	if d.VerifyChecksum {
@@ -162,4 +162,21 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 	}
 
 	return nil
+}
+
+// The production release site uses consistent single mime type
+// but mime types are platform-dependent
+// and we may use different OS under test
+var zipMimeTypes = []string{
+	"application/x-zip-compressed", // Windows
+	"application/zip",              // Unix
+}
+
+func contentTypeIsZip(contentType string) bool {
+	for _, mt := range zipMimeTypes {
+		if mt == contentType {
+			return true
+		}
+	}
+	return false
 }

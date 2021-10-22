@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os/exec"
 	"regexp"
+	"runtime"
 	"strings"
 
 	"github.com/hashicorp/go-version"
@@ -20,8 +21,13 @@ var (
 )
 
 var Consul = Product{
-	Name:       "consul",
-	BinaryName: "consul",
+	Name: "consul",
+	BinaryName: func() string {
+		if runtime.GOOS == "windows" {
+			return "consul.exe"
+		}
+		return "consul"
+	},
 	GetVersion: func(ctx context.Context, path string) (*version.Version, error) {
 		cmd := exec.CommandContext(ctx, path, "version")
 

@@ -59,8 +59,8 @@ func (lv *LatestVersion) Validate() error {
 	if !validators.IsProductNameValid(lv.Product.Name) {
 		return fmt.Errorf("invalid product name: %q", lv.Product.Name)
 	}
-	if !validators.IsBinaryNameValid(lv.Product.BinaryName) {
-		return fmt.Errorf("invalid binary name: %q", lv.Product.BinaryName)
+	if !validators.IsBinaryNameValid(lv.Product.BinaryName()) {
+		return fmt.Errorf("invalid binary name: %q", lv.Product.BinaryName())
 	}
 
 	return nil
@@ -127,7 +127,7 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	execPath := filepath.Join(dstDir, lv.Product.BinaryName)
+	execPath := filepath.Join(dstDir, lv.Product.BinaryName())
 
 	lv.pathsToRemove = append(lv.pathsToRemove, execPath)
 

@@ -42,8 +42,8 @@ func (ev *ExactVersion) log() *log.Logger {
 }
 
 func (ev *ExactVersion) Validate() error {
-	if !validators.IsBinaryNameValid(ev.Product.BinaryName) {
-		return fmt.Errorf("invalid binary name: %q", ev.Product.BinaryName)
+	if !validators.IsBinaryNameValid(ev.Product.BinaryName()) {
+		return fmt.Errorf("invalid binary name: %q", ev.Product.BinaryName())
 	}
 	if ev.Version == nil {
 		return fmt.Errorf("undeclared version")
@@ -62,7 +62,7 @@ func (ev *ExactVersion) Find(ctx context.Context) (string, error) {
 	ctx, cancelFunc := context.WithTimeout(ctx, timeout)
 	defer cancelFunc()
 
-	execPath, err := findFile(lookupDirs(ev.ExtraPaths), ev.Product.BinaryName, func(file string) error {
+	execPath, err := findFile(lookupDirs(ev.ExtraPaths), ev.Product.BinaryName(), func(file string) error {
 		err := checkExecutable(file)
 		if err != nil {
 			return err

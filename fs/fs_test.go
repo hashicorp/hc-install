@@ -34,7 +34,7 @@ func TestAnyVersion_notExecutable(t *testing.T) {
 
 	av := &AnyVersion{
 		Product: product.Product{
-			BinaryName: fileName,
+			BinaryName: func() string { return fileName },
 		},
 	}
 	av.SetLogger(testutil.TestLogger())
@@ -64,7 +64,7 @@ func TestAnyVersion_executable(t *testing.T) {
 
 	av := &AnyVersion{
 		Product: product.Product{
-			BinaryName: fileName,
+			BinaryName: func() string { return fileName },
 		},
 	}
 	av.SetLogger(testutil.TestLogger())

@@ -56,8 +56,8 @@ func (ev *ExactVersion) Validate() error {
 		return fmt.Errorf("invalid product name: %q", ev.Product.Name)
 	}
 
-	if !validators.IsBinaryNameValid(ev.Product.BinaryName) {
-		return fmt.Errorf("invalid binary name: %q", ev.Product.BinaryName)
+	if !validators.IsBinaryNameValid(ev.Product.BinaryName()) {
+		return fmt.Errorf("invalid binary name: %q", ev.Product.BinaryName())
 	}
 
 	if ev.Version == nil {
@@ -119,7 +119,7 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	execPath := filepath.Join(dstDir, ev.Product.BinaryName)
+	execPath := filepath.Join(dstDir, ev.Product.BinaryName())
 
 	ev.pathsToRemove = append(ev.pathsToRemove, execPath)
 

@@ -53,8 +53,8 @@ func (gr *GitRevision) Validate() error {
 	if !validators.IsProductNameValid(gr.Product.Name) {
 		return fmt.Errorf("invalid product name: %q", gr.Product.Name)
 	}
-	if !validators.IsBinaryNameValid(gr.Product.BinaryName) {
-		return fmt.Errorf("invalid binary name: %q", gr.Product.BinaryName)
+	if !validators.IsBinaryNameValid(gr.Product.BinaryName()) {
+		return fmt.Errorf("invalid binary name: %q", gr.Product.BinaryName())
 	}
 
 	bi := gr.Product.BuildInstructions
@@ -152,7 +152,7 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 	}
 
 	gr.log().Printf("building (timeout: %s)", buildTimeout)
-	return bi.Build.Build(buildCtx, repoDir, installDir, gr.Product.BinaryName)
+	return bi.Build.Build(buildCtx, repoDir, installDir, gr.Product.BinaryName())
 }
 
 func (gr *GitRevision) Remove(ctx context.Context) error {

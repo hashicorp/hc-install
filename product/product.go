@@ -2,6 +2,7 @@ package product
 
 import (
 	"context"
+	"time"
 
 	"github.com/hashicorp/go-version"
 )
@@ -27,11 +28,26 @@ type BinaryNameFunc func() string
 type BuildInstructions struct {
 	GitRepoURL string
 
+	// CloneTimeout overrides default timeout
+	// for cloning the repository
+	CloneTimeout time.Duration
+
+	// PreCloneCheck represents any checks to run
+	// prior to building, such as verifying build
+	// dependencies (e.g. whether Go is installed)
 	PreCloneCheck Checker
+
+	// PreCloneCheckTimeout overrides default timeout
+	// for the PreCloneCheck
+	PreCloneCheckTimeout time.Duration
 
 	// Build represents how to build the product
 	// after checking out the source code
 	Build Builder
+
+	// BuildTimeout overrides default timeout
+	// for the Builder
+	BuildTimeout time.Duration
 }
 
 type Checker interface {

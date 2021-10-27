@@ -16,8 +16,10 @@ import (
 )
 
 var (
-	cloneTimeout  = 1 * time.Minute
-	buildTimeout  = 5 * time.Minute
+	defaultPreCloneCheckTimeout = 1 * time.Minute
+	defaultCloneTimeout         = 1 * time.Minute
+	defaultBuildTimeout         = 5 * time.Minute
+
 	discardLogger = log.New(ioutil.Discard, "", 0)
 )
 
@@ -72,23 +74,24 @@ func (gr *GitRevision) Validate() error {
 }
 
 func (gr *GitRevision) Build(ctx context.Context) (string, error) {
-	buildTimeout := buildTimeout
-	if gr.BuildTimeout > 0 {
-		buildTimeout = gr.BuildTimeout
-	}
-
 	bi := gr.Product.BuildInstructions
 
 	if bi.PreCloneCheck != nil {
-		pccCtx, cancelFunc := context.WithTimeout(ctx, buildTimeout)
+		preCloneCheckTimeout := defaultPreCloneCheckTimeout
+		if bi.PreCloneCheckTimeout > 0 {
+			preCloneCheckTimeout = bi.PreCloneCheckTimeout
+		}
+
+		pccCtx, cancelFunc := context.WithTimeout(ctx, preCloneCheckTimeout)
 		defer cancelFunc()
 
-		gr.log().Printf("running pre-clone check (timeout: %s)", buildTimeout)
+		gr.log().Printf("running %s pre-clone check (timeout: %s)",
+			gr.Product.Name, preCloneCheckTimeout)
 		err := bi.PreCloneCheck.Check(pccCtx)
 		if err != nil {
 			return "", err
 		}
-		gr.log().Printf("pre-clone check finished")
+		gr.log().Printf("%s pre-clone check finished", gr.Product.Name)
 	}
 
 	if gr.pathsToRemove == nil {
@@ -107,32 +110,44 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 		ref = "HEAD"
 	}
 
-	timeout := cloneTimeout
-	if gr.BuildTimeout > 0 {
-		timeout = gr.BuildTimeout
+	cloneTimeout := defaultCloneTimeout
+	if bi.CloneTimeout > 0 {
+		cloneTimeout = bi.CloneTimeout
 	}
-	cloneCtx, cancelFunc := context.WithTimeout(ctx, timeout)
+	if gr.CloneTimeout > 0 {
+		cloneTimeout = gr.CloneTimeout
+	}
+	cloneCtx, cancelFunc := context.WithTimeout(ctx, cloneTimeout)
 	defer cancelFunc()
 
-	gr.log().Printf("cloning repository from %s to %s (timeout: %s)",
+	gr.log().Printf("cloning %s repository from %s to %s (timeout: %s)",
+		gr.Product.Name,
 		gr.Product.BuildInstructions.GitRepoURL,
-		repoDir, timeout)
+		repoDir, cloneTimeout)
 	repo, err := git.PlainCloneContext(cloneCtx, repoDir, false, &git.CloneOptions{
 		URL:           gr.Product.BuildInstructions.GitRepoURL,
 		ReferenceName: plumbing.ReferenceName(gr.Ref),
 		Depth:         1,
 	})
 	if err != nil {
-		return "", fmt.Errorf("unable to clone %q: %w",
-			gr.Product.BuildInstructions.GitRepoURL, err)
+		return "", fmt.Errorf("unable to clone %s from %q: %w",
+			gr.Product.Name, gr.Product.BuildInstructions.GitRepoURL, err)
 	}
-	gr.log().Printf("cloning finished")
+	gr.log().Printf("cloning %s finished", gr.Product.Name)
 	head, err := repo.Head()
 	if err != nil {
 		return "", err
 	}
 
-	gr.log().Printf("repository HEAD is at %s", head.Hash())
+	gr.log().Printf("%s repository HEAD is at %s", gr.Product.Name, head.Hash())
+
+	buildTimeout := defaultBuildTimeout
+	if bi.BuildTimeout > 0 {
+		buildTimeout = bi.BuildTimeout
+	}
+	if gr.BuildTimeout > 0 {
+		buildTimeout = gr.BuildTimeout
+	}
 
 	buildCtx, cancelFunc := context.WithTimeout(ctx, buildTimeout)
 	defer cancelFunc()
@@ -151,7 +166,8 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 		gr.pathsToRemove = append(gr.pathsToRemove, installDir)
 	}
 
-	gr.log().Printf("building (timeout: %s)", buildTimeout)
+	gr.log().Printf("building %s (timeout: %s)", gr.Product.Name, buildTimeout)
+	defer gr.log().Printf("building of %s finished", gr.Product.Name)
 	return bi.Build.Build(buildCtx, repoDir, installDir, gr.Product.BinaryName())
 }
 

@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -20,6 +21,7 @@ type Downloader struct {
 	Logger           *log.Logger
 	VerifyChecksum   bool
 	ArmoredPublicKey string
+	BaseURL          string
 }
 
 func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, dstDir string) error {
@@ -27,14 +29,16 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 		return fmt.Errorf("no builds found for %s %s", pv.Name, pv.Version)
 	}
 
-	pb, ok := pv.Builds.BuildForOsArch(runtime.GOOS, runtime.GOARCH)
+	pb, ok := pv.Builds.FilterBuild(runtime.GOOS, runtime.GOARCH, "zip")
 	if !ok {
-		return fmt.Errorf("no build found for %s/%s", runtime.GOOS, runtime.GOARCH)
+		return fmt.Errorf("no ZIP archive found for %s %s %s/%s",
+			pv.Name, pv.Version, runtime.GOOS, runtime.GOARCH)
 	}
 
 	var verifiedChecksum HashSum
 	if d.VerifyChecksum {
 		v := &ChecksumDownloader{
+			BaseURL:          d.BaseURL,
 			ProductVersion:   pv,
 			Logger:           d.Logger,
 			ArmoredPublicKey: d.ArmoredPublicKey,
@@ -53,24 +57,42 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 	client := httpclient.NewHTTPClient()
 
 	archiveURL := pb.URL
+	if d.BaseURL != "" {
+		// ensure that absolute download links from mocked responses
+		// are still pointing to the mock server if one is set
+		baseURL, err := url.Parse(d.BaseURL)
+		if err != nil {
+			return err
+		}
+
+		u, err := url.Parse(archiveURL)
+		if err != nil {
+			return err
+		}
+		u.Scheme = baseURL.Scheme
+		u.Host = baseURL.Host
+		archiveURL = u.String()
+	}
+
 	d.Logger.Printf("downloading archive from %s", archiveURL)
 	resp, err := client.Get(archiveURL)
 	if err != nil {
 		return err
 	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("failed to download ZIP archive from %q: %s", archiveURL, resp.Status)
+	}
+
 	defer resp.Body.Close()
 
 	var pkgReader io.Reader
 	pkgReader = resp.Body
 
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("unexpected response code (%d)", resp.StatusCode)
-	}
-
 	contentType := resp.Header.Get("content-type")
-	if contentType != "application/zip" {
-		return fmt.Errorf("unexpected content-type: %s (expected application/zip)",
-			contentType)
+	if !contentTypeIsZip(contentType) {
+		return fmt.Errorf("unexpected content-type: %s (expected any of %q)",
+			contentType, zipMimeTypes)
 	}
 
 	if d.VerifyChecksum {
@@ -140,4 +162,21 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 	}
 
 	return nil
+}
+
+// The production release site uses consistent single mime type
+// but mime types are platform-dependent
+// and we may use different OS under test
+var zipMimeTypes = []string{
+	"application/x-zip-compressed", // Windows
+	"application/zip",              // Unix
+}
+
+func contentTypeIsZip(contentType string) bool {
+	for _, mt := range zipMimeTypes {
+		if mt == contentType {
+			return true
+		}
+	}
+	return false
 }

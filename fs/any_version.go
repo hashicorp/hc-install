@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/hc-install/errors"
 	"github.com/hashicorp/hc-install/internal/src"
+	"github.com/hashicorp/hc-install/internal/validators"
 	"github.com/hashicorp/hc-install/product"
 )
 
@@ -26,8 +27,8 @@ func (*AnyVersion) IsSourceImpl() src.InstallSrcSigil {
 }
 
 func (av *AnyVersion) Validate() error {
-	if av.Product.BinaryName == "" {
-		return fmt.Errorf("unknown binary name")
+	if !validators.IsBinaryNameValid(av.Product.BinaryName()) {
+		return fmt.Errorf("invalid binary name: %q", av.Product.BinaryName())
 	}
 	return nil
 }
@@ -44,7 +45,7 @@ func (av *AnyVersion) log() *log.Logger {
 }
 
 func (av *AnyVersion) Find(ctx context.Context) (string, error) {
-	execPath, err := findFile(lookupDirs(av.ExtraPaths), av.Product.BinaryName, checkExecutable)
+	execPath, err := findFile(lookupDirs(av.ExtraPaths), av.Product.BinaryName(), checkExecutable)
 	if err != nil {
 		return "", errors.SkippableErr(err)
 	}

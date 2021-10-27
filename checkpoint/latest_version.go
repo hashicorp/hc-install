@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/hc-install/internal/pubkey"
 	rjson "github.com/hashicorp/hc-install/internal/releasesjson"
 	isrc "github.com/hashicorp/hc-install/internal/src"
+	"github.com/hashicorp/hc-install/internal/validators"
 	"github.com/hashicorp/hc-install/product"
 )
 
@@ -55,11 +56,11 @@ func (lv *LatestVersion) log() *log.Logger {
 }
 
 func (lv *LatestVersion) Validate() error {
-	if lv.Product.Name == "" {
-		return fmt.Errorf("unknown product name")
+	if !validators.IsProductNameValid(lv.Product.Name) {
+		return fmt.Errorf("invalid product name: %q", lv.Product.Name)
 	}
-	if lv.Product.BinaryName == "" {
-		return fmt.Errorf("unknown binary name")
+	if !validators.IsBinaryNameValid(lv.Product.BinaryName()) {
+		return fmt.Errorf("invalid binary name: %q", lv.Product.BinaryName())
 	}
 
 	return nil
@@ -117,6 +118,7 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 		Logger:           lv.log(),
 		VerifyChecksum:   !lv.SkipChecksumVerification,
 		ArmoredPublicKey: pubkey.DefaultPublicKey,
+		BaseURL:          rels.BaseURL,
 	}
 	if lv.ArmoredPublicKey != "" {
 		d.ArmoredPublicKey = lv.ArmoredPublicKey
@@ -126,7 +128,7 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	execPath := filepath.Join(dstDir, lv.Product.BinaryName)
+	execPath := filepath.Join(dstDir, lv.Product.BinaryName())
 
 	lv.pathsToRemove = append(lv.pathsToRemove, execPath)
 

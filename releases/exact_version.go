@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/hc-install/internal/pubkey"
 	rjson "github.com/hashicorp/hc-install/internal/releasesjson"
 	isrc "github.com/hashicorp/hc-install/internal/src"
+	"github.com/hashicorp/hc-install/internal/validators"
 	"github.com/hashicorp/hc-install/product"
 )
 
@@ -30,6 +31,7 @@ type ExactVersion struct {
 	// instead of built-in pubkey to verify signature of downloaded checksums
 	ArmoredPublicKey string
 
+	apiBaseURL    string
 	logger        *log.Logger
 	pathsToRemove []string
 }
@@ -50,12 +52,12 @@ func (ev *ExactVersion) log() *log.Logger {
 }
 
 func (ev *ExactVersion) Validate() error {
-	if ev.Product.Name == "" {
-		return fmt.Errorf("unknown product name")
+	if !validators.IsProductNameValid(ev.Product.Name) {
+		return fmt.Errorf("invalid product name: %q", ev.Product.Name)
 	}
 
-	if ev.Product.BinaryName == "" {
-		return fmt.Errorf("unknown binary name")
+	if !validators.IsBinaryNameValid(ev.Product.BinaryName()) {
+		return fmt.Errorf("invalid binary name: %q", ev.Product.BinaryName())
 	}
 
 	if ev.Version == nil {
@@ -91,6 +93,9 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 	ev.log().Printf("will install into dir at %s", dstDir)
 
 	rels := rjson.NewReleases()
+	if ev.apiBaseURL != "" {
+		rels.BaseURL = ev.apiBaseURL
+	}
 	rels.SetLogger(ev.log())
 	pv, err := rels.GetProductVersion(ctx, ev.Product.Name, ev.Version)
 	if err != nil {
@@ -101,9 +106,13 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		Logger:           ev.log(),
 		VerifyChecksum:   !ev.SkipChecksumVerification,
 		ArmoredPublicKey: pubkey.DefaultPublicKey,
+		BaseURL:          rels.BaseURL,
 	}
 	if ev.ArmoredPublicKey != "" {
 		d.ArmoredPublicKey = ev.ArmoredPublicKey
+	}
+	if ev.apiBaseURL != "" {
+		d.BaseURL = ev.apiBaseURL
 	}
 
 	err = d.DownloadAndUnpack(ctx, pv, dstDir)
@@ -111,7 +120,7 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	execPath := filepath.Join(dstDir, ev.Product.BinaryName)
+	execPath := filepath.Join(dstDir, ev.Product.BinaryName())
 
 	ev.pathsToRemove = append(ev.pathsToRemove, execPath)
 

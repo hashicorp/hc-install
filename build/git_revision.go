@@ -11,12 +11,13 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	isrc "github.com/hashicorp/hc-install/internal/src"
+	"github.com/hashicorp/hc-install/internal/validators"
 	"github.com/hashicorp/hc-install/product"
 )
 
 var (
 	cloneTimeout  = 1 * time.Minute
-	buildTimeout  = 2 * time.Minute
+	buildTimeout  = 5 * time.Minute
 	discardLogger = log.New(ioutil.Discard, "", 0)
 )
 
@@ -49,11 +50,11 @@ func (gr *GitRevision) log() *log.Logger {
 }
 
 func (gr *GitRevision) Validate() error {
-	if gr.Product.Name == "" {
-		return fmt.Errorf("unknown product name")
+	if !validators.IsProductNameValid(gr.Product.Name) {
+		return fmt.Errorf("invalid product name: %q", gr.Product.Name)
 	}
-	if gr.Product.BinaryName == "" {
-		return fmt.Errorf("unknown binary name")
+	if !validators.IsBinaryNameValid(gr.Product.BinaryName()) {
+		return fmt.Errorf("invalid binary name: %q", gr.Product.BinaryName())
 	}
 
 	bi := gr.Product.BuildInstructions
@@ -151,7 +152,7 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 	}
 
 	gr.log().Printf("building (timeout: %s)", buildTimeout)
-	return bi.Build.Build(buildCtx, repoDir, installDir, gr.Product.BinaryName)
+	return bi.Build.Build(buildCtx, repoDir, installDir, gr.Product.BinaryName())
 }
 
 func (gr *GitRevision) Remove(ctx context.Context) error {

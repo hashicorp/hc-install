@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/hc-install/internal/pubkey"
 	rjson "github.com/hashicorp/hc-install/internal/releasesjson"
 	isrc "github.com/hashicorp/hc-install/internal/src"
+	"github.com/hashicorp/hc-install/internal/validators"
 	"github.com/hashicorp/hc-install/product"
 )
 
@@ -30,6 +31,7 @@ type LatestVersion struct {
 	// instead of built-in pubkey to verify signature of downloaded checksums
 	ArmoredPublicKey string
 
+	apiBaseURL    string
 	logger        *log.Logger
 	pathsToRemove []string
 }
@@ -50,12 +52,12 @@ func (lv *LatestVersion) log() *log.Logger {
 }
 
 func (lv *LatestVersion) Validate() error {
-	if lv.Product.Name == "" {
-		return fmt.Errorf("unknown product name")
+	if !validators.IsProductNameValid(lv.Product.Name) {
+		return fmt.Errorf("invalid product name: %q", lv.Product.Name)
 	}
 
-	if lv.Product.BinaryName == "" {
-		return fmt.Errorf("unknown binary name")
+	if !validators.IsBinaryNameValid(lv.Product.BinaryName()) {
+		return fmt.Errorf("invalid binary name: %q", lv.Product.BinaryName())
 	}
 
 	return nil
@@ -87,6 +89,9 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 	lv.log().Printf("will install into dir at %s", dstDir)
 
 	rels := rjson.NewReleases()
+	if lv.apiBaseURL != "" {
+		rels.BaseURL = lv.apiBaseURL
+	}
 	rels.SetLogger(lv.log())
 	versions, err := rels.ListProductVersions(ctx, lv.Product.Name)
 	if err != nil {
@@ -106,16 +111,20 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 		Logger:           lv.log(),
 		VerifyChecksum:   !lv.SkipChecksumVerification,
 		ArmoredPublicKey: pubkey.DefaultPublicKey,
+		BaseURL:          rels.BaseURL,
 	}
 	if lv.ArmoredPublicKey != "" {
 		d.ArmoredPublicKey = lv.ArmoredPublicKey
+	}
+	if lv.apiBaseURL != "" {
+		d.BaseURL = lv.apiBaseURL
 	}
 	err = d.DownloadAndUnpack(ctx, versionToInstall, dstDir)
 	if err != nil {
 		return "", err
 	}
 
-	execPath := filepath.Join(dstDir, lv.Product.BinaryName)
+	execPath := filepath.Join(dstDir, lv.Product.BinaryName())
 
 	lv.pathsToRemove = append(lv.pathsToRemove, execPath)
 

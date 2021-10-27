@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os/exec"
 	"regexp"
+	"runtime"
 	"strings"
 
 	"github.com/hashicorp/go-version"
@@ -18,8 +19,13 @@ var (
 )
 
 var Terraform = Product{
-	Name:       "terraform",
-	BinaryName: "terraform",
+	Name: "terraform",
+	BinaryName: func() string {
+		if runtime.GOOS == "windows" {
+			return "terraform.exe"
+		}
+		return "terraform"
+	},
 	GetVersion: func(ctx context.Context, path string) (*version.Version, error) {
 		cmd := exec.CommandContext(ctx, path, "version")
 

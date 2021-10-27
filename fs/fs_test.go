@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/hashicorp/go-version"
@@ -19,60 +20,6 @@ var (
 	_ src.Findable       = &ExactVersion{}
 	_ src.LoggerSettable = &ExactVersion{}
 )
-
-func TestAnyVersion_notExecutable(t *testing.T) {
-	testutil.EndToEndTest(t)
-
-	originalPath := os.Getenv("PATH")
-	os.Setenv("PATH", "")
-	t.Cleanup(func() {
-		os.Setenv("PATH", originalPath)
-	})
-
-	dirPath, fileName := createTempFile(t, "")
-	os.Setenv("PATH", dirPath)
-
-	av := &AnyVersion{
-		Product: product.Product{
-			BinaryName: fileName,
-		},
-	}
-	av.SetLogger(testutil.TestLogger())
-	_, err := av.Find(context.Background())
-	if err == nil {
-		t.Fatalf("expected %s not to be found in %s", fileName, dirPath)
-	}
-}
-
-func TestAnyVersion_executable(t *testing.T) {
-	testutil.EndToEndTest(t)
-
-	originalPath := os.Getenv("PATH")
-	os.Setenv("PATH", "")
-	t.Cleanup(func() {
-		os.Setenv("PATH", originalPath)
-	})
-
-	dirPath, fileName := createTempFile(t, "")
-	os.Setenv("PATH", dirPath)
-
-	fullPath := filepath.Join(dirPath, fileName)
-	err := os.Chmod(fullPath, 0700)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	av := &AnyVersion{
-		Product: product.Product{
-			BinaryName: fileName,
-		},
-	}
-	av.SetLogger(testutil.TestLogger())
-	_, err = av.Find(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
-}
 
 func TestExactVersion(t *testing.T) {
 	t.Skip("TODO")
@@ -100,6 +47,10 @@ func TestExactVersion(t *testing.T) {
 func createTempFile(t *testing.T, content string) (string, string) {
 	tmpDir := t.TempDir()
 	fileName := t.Name()
+
+	if runtime.GOOS == "windows" {
+		fileName += ".exe"
+	}
 
 	filePath := filepath.Join(tmpDir, fileName)
 	f, err := os.Create(filePath)

@@ -85,12 +85,13 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 		pccCtx, cancelFunc := context.WithTimeout(ctx, preCloneCheckTimeout)
 		defer cancelFunc()
 
-		gr.log().Printf("running pre-clone check (timeout: %s)", preCloneCheckTimeout)
+		gr.log().Printf("running %s pre-clone check (timeout: %s)",
+			gr.Product.Name, preCloneCheckTimeout)
 		err := bi.PreCloneCheck.Check(pccCtx)
 		if err != nil {
 			return "", err
 		}
-		gr.log().Printf("pre-clone check finished")
+		gr.log().Printf("%s pre-clone check finished", gr.Product.Name)
 	}
 
 	if gr.pathsToRemove == nil {
@@ -119,7 +120,8 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 	cloneCtx, cancelFunc := context.WithTimeout(ctx, cloneTimeout)
 	defer cancelFunc()
 
-	gr.log().Printf("cloning repository from %s to %s (timeout: %s)",
+	gr.log().Printf("cloning %s repository from %s to %s (timeout: %s)",
+		gr.Product.Name,
 		gr.Product.BuildInstructions.GitRepoURL,
 		repoDir, cloneTimeout)
 	repo, err := git.PlainCloneContext(cloneCtx, repoDir, false, &git.CloneOptions{
@@ -128,16 +130,16 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 		Depth:         1,
 	})
 	if err != nil {
-		return "", fmt.Errorf("unable to clone %q: %w",
-			gr.Product.BuildInstructions.GitRepoURL, err)
+		return "", fmt.Errorf("unable to clone %s from %q: %w",
+			gr.Product.Name, gr.Product.BuildInstructions.GitRepoURL, err)
 	}
-	gr.log().Printf("cloning finished")
+	gr.log().Printf("cloning %s finished", gr.Product.Name)
 	head, err := repo.Head()
 	if err != nil {
 		return "", err
 	}
 
-	gr.log().Printf("repository HEAD is at %s", head.Hash())
+	gr.log().Printf("%s repository HEAD is at %s", gr.Product.Name, head.Hash())
 
 	buildTimeout := defaultBuildTimeout
 	if bi.BuildTimeout > 0 {
@@ -164,7 +166,8 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 		gr.pathsToRemove = append(gr.pathsToRemove, installDir)
 	}
 
-	gr.log().Printf("building (timeout: %s)", buildTimeout)
+	gr.log().Printf("building %s (timeout: %s)", gr.Product.Name, buildTimeout)
+	defer gr.log().Printf("building of %s finished", gr.Product.Name)
 	return bi.Build.Build(buildCtx, repoDir, installDir, gr.Product.BinaryName())
 }
 

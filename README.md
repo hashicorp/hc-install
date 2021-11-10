@@ -1,7 +1,5 @@
 # hc-install
 
-**DO NOT USE: WIP**
-
 An **experimental** Go module for downloading or locating HashiCorp binaries, verifying signatures and checksums, and asserting version constraints.
 
 This module is a successor to tfinstall, available in pre-1.0 versions of [terraform-exec](https://github.com/hashicorp/terraform-exec). Current users of tfinstall are advised to move to hc-install before upgrading terraform-exec to v1.0.0.

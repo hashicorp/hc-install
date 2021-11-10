@@ -42,7 +42,7 @@ func (i *Installer) Ensure(ctx context.Context, sources []src.Source) (string, e
 		}
 	}
 
-	if len(errs.Errors) > 0 {
+	if errs.ErrorOrNil() != nil {
 		return "", errs
 	}
 

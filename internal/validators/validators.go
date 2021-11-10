@@ -3,8 +3,8 @@ package validators
 import "regexp"
 
 var (
-	productNameRe = regexp.MustCompile(`/[a-z0-9-]+/`)
-	binaryNameRe  = regexp.MustCompile(`/[a-zA-Z0-9-_.]+/`)
+	productNameRe = regexp.MustCompile(`^[a-z0-9-]+$`)
+	binaryNameRe  = regexp.MustCompile(`^[a-zA-Z0-9-_.]+$`)
 )
 
 // IsProductNameValid provides early user-facing validation of a product name

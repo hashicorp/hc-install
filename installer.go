@@ -103,9 +103,23 @@ func (i *Installer) Ensure(ctx context.Context, sources []src.Source) (string, e
 func (i *Installer) Install(ctx context.Context, sources []src.Installable) (string, error) {
 	var errs *multierror.Error
 
+	i.removableSources = make([]src.Removable, 0)
+
 	for _, source := range sources {
 		if srcWithLogger, ok := source.(src.LoggerSettable); ok {
 			srcWithLogger.SetLogger(i.logger)
+		}
+
+		if srcValidatable, ok := source.(src.Validatable); ok {
+			err := srcValidatable.Validate()
+			if err != nil {
+				errs = multierror.Append(errs, err)
+				continue
+			}
+		}
+
+		if s, ok := source.(src.Removable); ok {
+			i.removableSources = append(i.removableSources, s)
 		}
 
 		execPath, err := source.Install(ctx)

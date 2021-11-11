@@ -33,3 +33,27 @@ func TestInstaller_Ensure(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestInstaller_Install(t *testing.T) {
+	testutil.EndToEndTest(t)
+
+	// most of this logic is already tested within individual packages
+	// so this is just a simple E2E test to ensure the public API
+	// also works and continues working
+
+	i := NewInstaller()
+	i.SetLogger(testutil.TestLogger())
+	ctx := context.Background()
+	_, err := i.Install(ctx, []src.Installable{
+		&releases.LatestVersion{
+			Product: product.Terraform,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = i.Remove(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

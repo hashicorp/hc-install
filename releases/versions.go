@@ -3,6 +3,7 @@ package releases
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/hashicorp/go-version"
@@ -54,21 +55,19 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 		return nil, err
 	}
 
-	installables := make([]src.Source, 0)
-	for _, pv := range pvs {
-		installableVersion, err := version.NewVersion(pv.Version)
-		if err != nil {
-			continue
-		}
+	versions := pvs.AsSlice()
+	sort.Stable(versions)
 
-		if !v.Constraints.Check(installableVersion) {
+	installables := make([]src.Source, 0)
+	for _, pv := range versions {
+		if !v.Constraints.Check(pv.Version) {
 			// skip version which doesn't match constraint
 			continue
 		}
 
 		ev := &ExactVersion{
 			Product:    v.Product,
-			Version:    installableVersion,
+			Version:    pv.Version,
 			InstallDir: v.Install.Dir,
 			Timeout:    v.Install.Timeout,
 

@@ -18,19 +18,8 @@ const defaultBaseURL = "https://releases.hashicorp.com"
 // Product is a top-level product like "Consul" or "Nomad". A Product may have
 // one or more versions.
 type Product struct {
-	Name     string                     `json:"name"`
-	Versions map[string]*ProductVersion `json:"versions"`
-}
-
-// ProductVersion is a wrapper around a particular product version like
-// "consul 0.5.1". A ProductVersion may have one or more builds.
-type ProductVersion struct {
-	Name        string        `json:"name"`
-	Version     string        `json:"version"`
-	SHASUMS     string        `json:"shasums,omitempty"`
-	SHASUMSSig  string        `json:"shasums_signature,omitempty"`
-	SHASUMSSigs []string      `json:"shasums_signatures,omitempty"`
-	Builds      ProductBuilds `json:"builds"`
+	Name     string             `json:"name"`
+	Versions ProductVersionsMap `json:"versions"`
 }
 
 type ProductBuilds []*ProductBuild
@@ -71,7 +60,7 @@ func (r *Releases) SetLogger(logger *log.Logger) {
 	r.logger = logger
 }
 
-func (r *Releases) ListProductVersions(ctx context.Context, productName string) (map[string]*ProductVersion, error) {
+func (r *Releases) ListProductVersions(ctx context.Context, productName string) (ProductVersionsMap, error) {
 	client := httpclient.NewHTTPClient()
 
 	productIndexURL := fmt.Sprintf("%s/%s/index.json",
@@ -122,7 +111,10 @@ func (r *Releases) ListProductVersions(ctx context.Context, productName string) 
 			// Remove (currently unsupported) enterprise
 			// version and any other "custom" build
 			delete(p.Versions, rawVersion)
+			continue
 		}
+
+		p.Versions[rawVersion].Version = v
 	}
 
 	return p.Versions, nil

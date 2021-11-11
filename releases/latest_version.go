@@ -149,20 +149,15 @@ func (lv *LatestVersion) Remove(ctx context.Context) error {
 	return nil
 }
 
-func (lv *LatestVersion) findLatestMatchingVersion(pvs map[string]*rjson.ProductVersion, vc version.Constraints) (*rjson.ProductVersion, bool) {
+func (lv *LatestVersion) findLatestMatchingVersion(pvs rjson.ProductVersionsMap, vc version.Constraints) (*rjson.ProductVersion, bool) {
 	versions := make(version.Collection, 0)
-	for _, pv := range pvs {
-		v, err := version.NewVersion(pv.Version)
-		if err != nil {
-			continue
-		}
-
-		if !lv.IncludePrereleases && v.Prerelease() != "" {
+	for _, pv := range pvs.AsSlice() {
+		if !lv.IncludePrereleases && pv.Version.Prerelease() != "" {
 			// skip prereleases if desired
 			continue
 		}
 
-		versions = append(versions, v)
+		versions = append(versions, pv.Version)
 	}
 
 	if len(versions) == 0 {

@@ -51,7 +51,7 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums() (ChecksumFileMap, err
 	client := httpclient.NewHTTPClient()
 	sigURL := fmt.Sprintf("%s/%s/%s/%s", cd.BaseURL,
 		url.PathEscape(cd.ProductVersion.Name),
-		url.PathEscape(cd.ProductVersion.Version),
+		url.PathEscape(cd.ProductVersion.RawVersion),
 		url.PathEscape(sigFilename))
 	cd.Logger.Printf("downloading signature from %s", sigURL)
 	sigResp, err := client.Get(sigURL)
@@ -67,7 +67,7 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums() (ChecksumFileMap, err
 
 	shasumsURL := fmt.Sprintf("%s/%s/%s/%s", cd.BaseURL,
 		url.PathEscape(cd.ProductVersion.Name),
-		url.PathEscape(cd.ProductVersion.Version),
+		url.PathEscape(cd.ProductVersion.RawVersion),
 		url.PathEscape(cd.ProductVersion.SHASUMS))
 	cd.Logger.Printf("downloading checksums from %s", shasumsURL)
 	sumsResp, err := client.Get(shasumsURL)

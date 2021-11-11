@@ -18,11 +18,17 @@ func TestInstaller_Ensure(t *testing.T) {
 	// also works and continues working
 
 	i := NewInstaller()
-	_, err := i.Ensure(context.Background(), []src.Source{
+	i.SetLogger(testutil.TestLogger())
+	ctx := context.Background()
+	_, err := i.Ensure(ctx, []src.Source{
 		&releases.LatestVersion{
 			Product: product.Terraform,
 		},
 	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = i.Remove(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

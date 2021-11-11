@@ -55,6 +55,6 @@ var Consul = Product{
 		CloneTimeout:  2 * time.Minute,
 		PreCloneCheck: &build.GoIsInstalled{},
 		Build:         &build.GoBuild{Version: v1_16},
-		BuildTimeout:  8 * time.Minute,
+		BuildTimeout:  10 * time.Minute,
 	},
 }

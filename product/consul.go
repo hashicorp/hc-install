@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hc-install/internal/build"
@@ -52,9 +51,7 @@ var Consul = Product{
 	},
 	BuildInstructions: &BuildInstructions{
 		GitRepoURL:    "https://github.com/hashicorp/consul.git",
-		CloneTimeout:  2 * time.Minute,
 		PreCloneCheck: &build.GoIsInstalled{},
 		Build:         &build.GoBuild{Version: v1_16},
-		BuildTimeout:  10 * time.Minute,
 	},
 }

@@ -26,6 +26,10 @@ func NewInstaller() *Installer {
 	}
 }
 
+func (i *Installer) SetLogger(logger *log.Logger) {
+	i.logger = logger
+}
+
 func (i *Installer) Ensure(ctx context.Context, sources []src.Source) (string, error) {
 	var errs *multierror.Error
 

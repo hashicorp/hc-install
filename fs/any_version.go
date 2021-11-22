@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/hc-install/product"
 )
 
-// AnyVersion finds the an executable binary of any version
+// AnyVersion finds an executable binary of any version
 // either defined by ExactBinPath, or as part of Product.
 //
 // When ExactBinPath is used, the source is skipped when

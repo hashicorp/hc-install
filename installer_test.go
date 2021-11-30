@@ -2,6 +2,8 @@ package install
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/hashicorp/hc-install/fs"
@@ -39,6 +41,13 @@ func TestInstaller_Ensure_findable(t *testing.T) {
 	testutil.EndToEndTest(t)
 
 	dirPath, fileName := testutil.CreateTempFile(t, "")
+
+	fullPath := filepath.Join(dirPath, fileName)
+	err := os.Chmod(fullPath, 0700)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	t.Setenv("PATH", dirPath)
 
 	// most of this logic is already tested within individual packages
@@ -48,7 +57,7 @@ func TestInstaller_Ensure_findable(t *testing.T) {
 	i := NewInstaller()
 	i.SetLogger(testutil.TestLogger())
 	ctx := context.Background()
-	_, err := i.Ensure(ctx, []src.Source{
+	_, err = i.Ensure(ctx, []src.Source{
 		&fs.AnyVersion{
 			Product: &product.Product{
 				BinaryName: func() string {

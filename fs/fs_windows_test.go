@@ -14,14 +14,8 @@ import (
 func TestAnyVersion_executable(t *testing.T) {
 	testutil.EndToEndTest(t)
 
-	originalPath := os.Getenv("path")
-	os.Setenv("path", "")
-	t.Cleanup(func() {
-		os.Setenv("path", originalPath)
-	})
-
 	dirPath, fileName := createTempFile(t, "")
-	os.Setenv("path", dirPath)
+	t.Setenv("path", dirPath)
 
 	av := &AnyVersion{
 		Product: &product.Product{

@@ -17,14 +17,8 @@ import (
 func TestAnyVersion_notExecutable(t *testing.T) {
 	testutil.EndToEndTest(t)
 
-	originalPath := os.Getenv("PATH")
-	os.Setenv("PATH", "")
-	t.Cleanup(func() {
-		os.Setenv("PATH", originalPath)
-	})
-
 	dirPath, fileName := createTempFile(t, "")
-	os.Setenv("PATH", dirPath)
+	t.Setenv("PATH", dirPath)
 
 	av := &AnyVersion{
 		Product: &product.Product{
@@ -41,14 +35,8 @@ func TestAnyVersion_notExecutable(t *testing.T) {
 func TestAnyVersion_executable(t *testing.T) {
 	testutil.EndToEndTest(t)
 
-	originalPath := os.Getenv("PATH")
-	os.Setenv("PATH", "")
-	t.Cleanup(func() {
-		os.Setenv("PATH", originalPath)
-	})
-
 	dirPath, fileName := createTempFile(t, "")
-	os.Setenv("PATH", dirPath)
+	t.Setenv("PATH", dirPath)
 
 	fullPath := filepath.Join(dirPath, fileName)
 	err := os.Chmod(fullPath, 0700)

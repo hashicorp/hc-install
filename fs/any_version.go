@@ -43,13 +43,16 @@ func (*AnyVersion) IsSourceImpl() src.InstallSrcSigil {
 }
 
 func (av *AnyVersion) Validate() error {
+	if av.ExactBinPath == "" && av.Product == nil {
+		return fmt.Errorf("must use either ExactBinPath or Product + ExtraPaths")
+	}
 	if av.ExactBinPath != "" && (av.Product != nil || len(av.ExtraPaths) > 0) {
 		return fmt.Errorf("use either ExactBinPath or Product + ExtraPaths, not both")
 	}
-	if !filepath.IsAbs(av.ExactBinPath) {
+	if av.ExactBinPath != "" && !filepath.IsAbs(av.ExactBinPath) {
 		return fmt.Errorf("expected ExactBinPath (%q) to be an absolute path", av.ExactBinPath)
 	}
-	if !validators.IsBinaryNameValid(av.Product.BinaryName()) {
+	if av.Product != nil && !validators.IsBinaryNameValid(av.Product.BinaryName()) {
 		return fmt.Errorf("invalid binary name: %q", av.Product.BinaryName())
 	}
 	return nil

@@ -42,7 +42,7 @@ func TestAnyVersionValidate(t *testing.T) {
 		},
 		"ExactBinPath-absolute": {
 			av: AnyVersion{
-				ExactBinPath: "/test",
+				ExactBinPath: filepath.Separator + "test",
 			},
 		},
 		"Product-incorrect-binary-name": {

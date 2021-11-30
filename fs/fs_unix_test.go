@@ -17,7 +17,7 @@ import (
 func TestAnyVersion_notExecutable(t *testing.T) {
 	testutil.EndToEndTest(t)
 
-	dirPath, fileName := createTempFile(t, "")
+	dirPath, fileName := testutil.CreateTempFile(t, "")
 	t.Setenv("PATH", dirPath)
 
 	av := &AnyVersion{
@@ -35,7 +35,7 @@ func TestAnyVersion_notExecutable(t *testing.T) {
 func TestAnyVersion_executable(t *testing.T) {
 	testutil.EndToEndTest(t)
 
-	dirPath, fileName := createTempFile(t, "")
+	dirPath, fileName := testutil.CreateTempFile(t, "")
 	t.Setenv("PATH", dirPath)
 
 	fullPath := filepath.Join(dirPath, fileName)
@@ -59,7 +59,7 @@ func TestAnyVersion_executable(t *testing.T) {
 func TestAnyVersion_exactBinPath(t *testing.T) {
 	testutil.EndToEndTest(t)
 
-	dirPath, fileName := createTempFile(t, "")
+	dirPath, fileName := testutil.CreateTempFile(t, "")
 	fullPath := filepath.Join(dirPath, fileName)
 	err := os.Chmod(fullPath, 0700)
 	if err != nil {
@@ -79,7 +79,7 @@ func TestAnyVersion_exactBinPath(t *testing.T) {
 func TestAnyVersion_exactBinPath_notExecutable(t *testing.T) {
 	testutil.EndToEndTest(t)
 
-	dirPath, fileName := createTempFile(t, "")
+	dirPath, fileName := testutil.CreateTempFile(t, "")
 	fullPath := filepath.Join(dirPath, fileName)
 	err := os.Chmod(fullPath, 0600)
 	if err != nil {

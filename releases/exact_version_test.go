@@ -1,62 +1,22 @@
-package checkpoint
+package releases
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/hc-install/internal/testutil"
 	"github.com/hashicorp/hc-install/product"
-	"github.com/hashicorp/hc-install/src"
 )
 
-var (
-	_ src.Installable    = &LatestVersion{}
-	_ src.Removable      = &LatestVersion{}
-	_ src.LoggerSettable = &LatestVersion{}
-)
-
-func TestLatestVersion(t *testing.T) {
-	testutil.EndToEndTest(t)
-
-	lv := &LatestVersion{
-		Product: product.Terraform,
-	}
-	lv.SetLogger(testutil.TestLogger())
-
-	ctx := context.Background()
-
-	execPath, err := lv.Install(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { lv.Remove(ctx) })
-
-	v, err := product.Terraform.GetVersion(ctx, execPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	latestConstraint, err := version.NewConstraint(">= 1.0")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !latestConstraint.Check(v.Core()) {
-		t.Fatalf("versions don't match (expected: %s, installed: %s)",
-			latestConstraint, v)
-	}
-}
-
-func TestLatestVersionValidate(t *testing.T) {
+func TestExactVersionValidate(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		lv          LatestVersion
+		ev          ExactVersion
 		expectedErr error
 	}{
 		"Product-incorrect-binary-name": {
-			lv: LatestVersion{
+			ev: ExactVersion{
 				Product: product.Product{
 					BinaryName: func() string { return "invalid!" },
 					Name:       product.Terraform.Name,
@@ -65,7 +25,7 @@ func TestLatestVersionValidate(t *testing.T) {
 			expectedErr: fmt.Errorf("invalid binary name: \"invalid!\""),
 		},
 		"Product-incorrect-name": {
-			lv: LatestVersion{
+			ev: ExactVersion{
 				Product: product.Product{
 					BinaryName: product.Terraform.BinaryName,
 					Name:       "invalid!",
@@ -73,10 +33,17 @@ func TestLatestVersionValidate(t *testing.T) {
 			},
 			expectedErr: fmt.Errorf("invalid product name: \"invalid!\""),
 		},
-		"Product-valid": {
-			lv: LatestVersion{
+		"Product-and-Version": {
+			ev: ExactVersion{
+				Product: product.Terraform,
+				Version: version.Must(version.NewVersion("1.0.0")),
+			},
+		},
+		"Version-missing": {
+			ev: ExactVersion{
 				Product: product.Terraform,
 			},
+			expectedErr: fmt.Errorf("unknown version"),
 		},
 	}
 
@@ -86,7 +53,7 @@ func TestLatestVersionValidate(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			err := testCase.lv.Validate()
+			err := testCase.ev.Validate()
 
 			if err == nil && testCase.expectedErr != nil {
 				t.Fatalf("expected error: %s, got no error", testCase.expectedErr)

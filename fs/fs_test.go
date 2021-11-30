@@ -2,7 +2,6 @@ package fs
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/go-version"

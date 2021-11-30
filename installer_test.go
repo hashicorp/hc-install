@@ -2,15 +2,17 @@ package install
 
 import (
 	"context"
+	"os"
 	"testing"
 
+	"github.com/hashicorp/hc-install/fs"
 	"github.com/hashicorp/hc-install/internal/testutil"
 	"github.com/hashicorp/hc-install/product"
 	"github.com/hashicorp/hc-install/releases"
 	"github.com/hashicorp/hc-install/src"
 )
 
-func TestInstaller_Ensure(t *testing.T) {
+func TestInstaller_Ensure_installable(t *testing.T) {
 	testutil.EndToEndTest(t)
 
 	// most of this logic is already tested within individual packages
@@ -29,6 +31,39 @@ func TestInstaller_Ensure(t *testing.T) {
 		t.Fatal(err)
 	}
 	err = i.Remove(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestInstaller_Ensure_findable(t *testing.T) {
+	testutil.EndToEndTest(t)
+
+	originalPath := os.Getenv("PATH")
+	os.Setenv("PATH", "")
+	t.Cleanup(func() {
+		os.Setenv("PATH", originalPath)
+	})
+
+	dirPath, fileName := testutil.CreateTempFile(t, "")
+	os.Setenv("PATH", dirPath)
+
+	// most of this logic is already tested within individual packages
+	// so this is just a simple E2E test to ensure the public API
+	// also works and continues working
+
+	i := NewInstaller()
+	i.SetLogger(testutil.TestLogger())
+	ctx := context.Background()
+	_, err := i.Ensure(ctx, []src.Source{
+		&fs.AnyVersion{
+			Product: &product.Product{
+				BinaryName: func() string {
+					return fileName
+				},
+			},
+		},
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

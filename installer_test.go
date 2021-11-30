@@ -39,14 +39,8 @@ func TestInstaller_Ensure_installable(t *testing.T) {
 func TestInstaller_Ensure_findable(t *testing.T) {
 	testutil.EndToEndTest(t)
 
-	originalPath := os.Getenv("PATH")
-	os.Setenv("PATH", "")
-	t.Cleanup(func() {
-		os.Setenv("PATH", originalPath)
-	})
-
 	dirPath, fileName := testutil.CreateTempFile(t, "")
-	os.Setenv("PATH", dirPath)
+	t.Setenv("PATH", dirPath)
 
 	// most of this logic is already tested within individual packages
 	// so this is just a simple E2E test to ensure the public API

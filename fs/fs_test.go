@@ -3,8 +3,6 @@ package fs
 import (
 	"context"
 	"os"
-	"path/filepath"
-	"runtime"
 	"testing"
 
 	"github.com/hashicorp/go-version"
@@ -42,26 +40,4 @@ func TestExactVersion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-}
-
-func createTempFile(t *testing.T, content string) (string, string) {
-	tmpDir := t.TempDir()
-	fileName := t.Name()
-
-	if runtime.GOOS == "windows" {
-		fileName += ".exe"
-	}
-
-	filePath := filepath.Join(tmpDir, fileName)
-	f, err := os.Create(filePath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer f.Close()
-	_, err = f.WriteString(content)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return tmpDir, fileName
 }

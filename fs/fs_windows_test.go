@@ -20,7 +20,7 @@ func TestAnyVersion_executable(t *testing.T) {
 		os.Setenv("path", originalPath)
 	})
 
-	dirPath, fileName := createTempFile(t, "")
+	dirPath, fileName := testutil.CreateTempFile(t, "")
 	os.Setenv("path", dirPath)
 
 	av := &AnyVersion{
@@ -38,7 +38,7 @@ func TestAnyVersion_executable(t *testing.T) {
 func TestAnyVersion_exactBinPath(t *testing.T) {
 	testutil.EndToEndTest(t)
 
-	dirPath, fileName := createTempFile(t, "")
+	dirPath, fileName := testutil.CreateTempFile(t, "")
 	fullPath := filepath.Join(dirPath, fileName)
 
 	av := &AnyVersion{
@@ -54,7 +54,7 @@ func TestAnyVersion_exactBinPath(t *testing.T) {
 func TestAnyVersion_exactBinPath_notFound(t *testing.T) {
 	testutil.EndToEndTest(t)
 
-	dirPath, fileName := createTempFile(t, "")
+	dirPath, fileName := testutil.CreateTempFile(t, "")
 	fullPath := filepath.Join(dirPath, fileName)
 
 	err := os.Remove(fullPath)

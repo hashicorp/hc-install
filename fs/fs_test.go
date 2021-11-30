@@ -2,7 +2,6 @@ package fs
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/go-version"
@@ -25,11 +24,7 @@ func TestExactVersion(t *testing.T) {
 
 	// TODO: mock out command execution?
 
-	originalPath := os.Getenv("PATH")
-	os.Setenv("PATH", "")
-	t.Cleanup(func() {
-		os.Setenv("PATH", originalPath)
-	})
+	t.Setenv("PATH", "")
 
 	ev := &ExactVersion{
 		Product: product.Terraform,

@@ -2,7 +2,6 @@ package install
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/hc-install/fs"

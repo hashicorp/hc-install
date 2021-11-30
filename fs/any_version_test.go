@@ -2,6 +2,7 @@ package fs
 
 import (
 	"fmt"
+	"path/filepath"
 	"testing"
 
 	"github.com/hashicorp/hc-install/product"
@@ -9,9 +10,6 @@ import (
 
 func TestAnyVersionValidate(t *testing.T) {
 	t.Parallel()
-
-	productWithInvalidBinaryName := product.Terraform
-	productWithInvalidBinaryName.BinaryName = func() string { return "invalid!" }
 
 	testCases := map[string]struct {
 		av          AnyVersion
@@ -42,14 +40,17 @@ func TestAnyVersionValidate(t *testing.T) {
 		},
 		"ExactBinPath-absolute": {
 			av: AnyVersion{
-				ExactBinPath: filepath.Separator + "test",
+				ExactBinPath: string(filepath.Separator) + "test",
 			},
 		},
 		"Product-incorrect-binary-name": {
 			av: AnyVersion{
-				Product: &productWithInvalidBinaryName,
+				Product: &product.Product{
+					BinaryName: func() string { return "invalid!" },
+					Name:       product.Terraform.Name,
+				},
 			},
-			expectedErr: fmt.Errorf("invalid binary name: %q", productWithInvalidBinaryName.BinaryName()),
+			expectedErr: fmt.Errorf("invalid binary name: \"invalid!\""),
 		},
 		"Product-valid": {
 			av: AnyVersion{

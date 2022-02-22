@@ -46,7 +46,7 @@ jobs:
     name: Test
     needs: build
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -68,8 +68,8 @@ jobs:
         go test -v -race ./...
 
     - name: E2E tests
-      timeout-minutes: 15
+      timeout-minutes: 20
       env:
         E2E_TESTING: 1
       run: |
-        go test -timeout=15m -v ./...
+        go test -timeout=20m -v ./...

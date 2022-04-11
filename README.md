@@ -79,6 +79,10 @@ execPath, err := i.Ensure(context.Background(), []src.Source{
     Product: product.Terraform,
     Version: v0_14_0,
   },
+  &fs.AnyVersion{
+    Product: product.Terraform,
+    Constraint: "~> 0.14.0",
+  },
   &releases.ExactVersion{
     Product: product.Terraform,
     Version: v0_14_0,

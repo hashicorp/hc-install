@@ -52,9 +52,31 @@ func TestAnyVersionValidate(t *testing.T) {
 			},
 			expectedErr: fmt.Errorf("invalid binary name: \"invalid!\""),
 		},
+		"Product-with-constraint-missing-get-version": {
+			av: AnyVersion{
+				Product: &product.Product{
+					BinaryName: product.Terraform.BinaryName,
+				},
+				Constraint: ">= 1.0",
+			},
+			expectedErr: fmt.Errorf("undeclared version getter"),
+		},
+		"Product-incorrect-constraint": {
+			av: AnyVersion{
+				Product:    &product.Terraform,
+				Constraint: "invalid!",
+			},
+			expectedErr: fmt.Errorf(`Malformed constraint: invalid!`),
+		},
 		"Product-valid": {
 			av: AnyVersion{
 				Product: &product.Terraform,
+			},
+		},
+		"Product-with-constraint-valid": {
+			av: AnyVersion{
+				Product:    &product.Terraform,
+				Constraint: ">= 1.0",
 			},
 		},
 	}

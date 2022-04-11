@@ -76,7 +76,7 @@ func TestAnyVersion_constraint(t *testing.T) {
 				return version.NewVersion("1.2.0")
 			},
 		},
-		Constraint: "~> 1.0",
+		Constraints: version.MustConstraints(version.NewConstraint("~> 1.0")),
 	}
 	av.SetLogger(testutil.TestLogger())
 	_, err = av.Find(context.Background())
@@ -104,7 +104,7 @@ func TestAnyVersion_constraintNotMet(t *testing.T) {
 				return version.NewVersion("2.0.0")
 			},
 		},
-		Constraint: "~> 1.0",
+		Constraints: version.MustConstraints(version.NewConstraint("~> 1.0")),
 	}
 	av.SetLogger(testutil.TestLogger())
 	_, err = av.Find(context.Background())

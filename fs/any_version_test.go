@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hc-install/product"
 )
 
@@ -57,16 +58,9 @@ func TestAnyVersionValidate(t *testing.T) {
 				Product: &product.Product{
 					BinaryName: product.Terraform.BinaryName,
 				},
-				Constraint: ">= 1.0",
+				Constraints: version.MustConstraints(version.NewConstraint(">= 1.0")),
 			},
 			expectedErr: fmt.Errorf("undeclared version getter"),
-		},
-		"Product-incorrect-constraint": {
-			av: AnyVersion{
-				Product:    &product.Terraform,
-				Constraint: "invalid!",
-			},
-			expectedErr: fmt.Errorf(`Malformed constraint: invalid!`),
 		},
 		"Product-valid": {
 			av: AnyVersion{
@@ -75,8 +69,8 @@ func TestAnyVersionValidate(t *testing.T) {
 		},
 		"Product-with-constraint-valid": {
 			av: AnyVersion{
-				Product:    &product.Terraform,
-				Constraint: ">= 1.0",
+				Product:     &product.Terraform,
+				Constraints: version.MustConstraints(version.NewConstraint(">= 1.0")),
 			},
 		},
 	}

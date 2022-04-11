@@ -24,7 +24,7 @@ import (
 // any directories in $PATH). Source is skipped if no binary
 // is found or accessible/executable.
 //
-// When Constraint is used, find the first binary that meets the specified
+// When Constraints is used, find the first binary that meets the specified
 // version constraint.
 type AnyVersion struct {
 	// Product represents the product (its binary name to look up),
@@ -35,9 +35,9 @@ type AnyVersion struct {
 	// the default system $PATH, conflicts with ExactBinPath
 	ExtraPaths []string
 
-	// Constraint represents one or more (comma separated) version constraints
-	// that should be met by the binary, conflicts with ExactBinPath
-	Constraint string
+	// Constraints represents a set of version constraints that should
+	// be met by the binary, conflicts with ExactBinPath
+	Constraints version.Constraints
 
 	// ExactBinPath represents exact path to the binary,
 	// conflicts with Product, ExtraPaths and Constraints
@@ -63,12 +63,9 @@ func (av *AnyVersion) Validate() error {
 	if av.Product != nil && !validators.IsBinaryNameValid(av.Product.BinaryName()) {
 		return fmt.Errorf("invalid binary name: %q", av.Product.BinaryName())
 	}
-	if av.Constraint != "" {
+	if av.Constraints != nil {
 		if av.Product.GetVersion == nil {
 			return fmt.Errorf("undeclared version getter")
-		}
-		if _, err := version.NewConstraint(av.Constraint); err != nil {
-			return err
 		}
 	}
 	return nil
@@ -95,19 +92,13 @@ func (av *AnyVersion) Find(ctx context.Context) (string, error) {
 		return av.ExactBinPath, nil
 	}
 
-	var constraints version.Constraints
-	if av.Constraint != "" {
-		// The constraint spec is validated in Validate().
-		constraints, _ = version.NewConstraint(av.Constraint)
-	}
-
 	execPath, err := findFile(lookupDirs(av.ExtraPaths), av.Product.BinaryName(), func(file string) error {
 		err := checkExecutable(file)
 		if err != nil {
 			return err
 		}
 
-		if av.Constraint == "" {
+		if av.Constraints == nil {
 			return nil
 		}
 
@@ -116,7 +107,7 @@ func (av *AnyVersion) Find(ctx context.Context) (string, error) {
 			return err
 		}
 
-		for _, vc := range constraints {
+		for _, vc := range av.Constraints {
 			if !vc.Check(v) {
 				return fmt.Errorf("version (%s) doesn't meet constraint %s", v, vc.String())
 			}

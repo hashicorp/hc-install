@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hc-install/fs"
 	"github.com/hashicorp/hc-install/internal/testutil"
 	"github.com/hashicorp/hc-install/product"
@@ -93,4 +94,41 @@ func TestInstaller_Install(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestInstaller_InstallAndRemove(t *testing.T) {
+	ctx := context.Background()
+	installDir := filepath.Join(t.TempDir(), "hcinstall")
+	if err := os.MkdirAll(installDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := os.Remove(installDir); err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	i := NewInstaller()
+	v := version.Must(version.NewVersion("1.0.2"))
+
+	_, err := i.Ensure(ctx, []src.Source{
+		&fs.ExactVersion{
+			Product: product.Terraform,
+			Version: v,
+		},
+		&releases.ExactVersion{
+			Product:    product.Terraform,
+			Version:    v,
+			InstallDir: installDir,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Cleanup(func() {
+		if err := i.Remove(ctx); err != nil {
+			t.Fatal(err)
+		}
+	})
 }

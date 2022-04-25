@@ -1,6 +1,7 @@
 package releases
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -8,7 +9,7 @@ import (
 	"github.com/hashicorp/hc-install/product"
 )
 
-func TestExactVersionValidate(t *testing.T) {
+func TestExactVersion_Validate(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
@@ -68,4 +69,24 @@ func TestExactVersionValidate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestExactVersion_InstallAndRemove(t *testing.T) {
+	ev := &ExactVersion{
+		Product:    product.Terraform,
+		Version:    version.Must(version.NewVersion("1.0.2")),
+		InstallDir: t.TempDir(),
+	}
+	ctx := context.Background()
+
+	_, err := ev.Install(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Cleanup(func() {
+		if err := ev.Remove(ctx); err != nil {
+			t.Fatal(err)
+		}
+	})
 }

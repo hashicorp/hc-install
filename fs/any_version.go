@@ -6,7 +6,6 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hc-install/errors"
 	"github.com/hashicorp/hc-install/internal/src"
 	"github.com/hashicorp/hc-install/internal/validators"
@@ -23,9 +22,6 @@ import (
 // and any declared ExtraPaths (which are *appended* to
 // any directories in $PATH). Source is skipped if no binary
 // is found or accessible/executable.
-//
-// When Constraints is used, find the first binary that meets the specified
-// version constraint.
 type AnyVersion struct {
 	// Product represents the product (its binary name to look up),
 	// conflicts with ExactBinPath
@@ -35,12 +31,8 @@ type AnyVersion struct {
 	// the default system $PATH, conflicts with ExactBinPath
 	ExtraPaths []string
 
-	// Constraints represents a set of version constraints that should
-	// be met by the binary, conflicts with ExactBinPath
-	Constraints version.Constraints
-
 	// ExactBinPath represents exact path to the binary,
-	// conflicts with Product, ExtraPaths and Constraints
+	// conflicts with Product and ExtraPaths
 	ExactBinPath string
 
 	logger *log.Logger
@@ -62,11 +54,6 @@ func (av *AnyVersion) Validate() error {
 	}
 	if av.Product != nil && !validators.IsBinaryNameValid(av.Product.BinaryName()) {
 		return fmt.Errorf("invalid binary name: %q", av.Product.BinaryName())
-	}
-	if av.Constraints != nil {
-		if av.Product.GetVersion == nil {
-			return fmt.Errorf("undeclared version getter")
-		}
 	}
 	return nil
 }
@@ -92,29 +79,7 @@ func (av *AnyVersion) Find(ctx context.Context) (string, error) {
 		return av.ExactBinPath, nil
 	}
 
-	execPath, err := findFile(lookupDirs(av.ExtraPaths), av.Product.BinaryName(), func(file string) error {
-		err := checkExecutable(file)
-		if err != nil {
-			return err
-		}
-
-		if av.Constraints == nil {
-			return nil
-		}
-
-		v, err := av.Product.GetVersion(ctx, file)
-		if err != nil {
-			return err
-		}
-
-		for _, vc := range av.Constraints {
-			if !vc.Check(v) {
-				return fmt.Errorf("version (%s) doesn't meet constraint %s", v, vc.String())
-			}
-		}
-
-		return nil
-	})
+	execPath, err := findFile(lookupDirs(av.ExtraPaths), av.Product.BinaryName(), checkExecutable)
 	if err != nil {
 		return "", errors.SkippableErr(err)
 	}

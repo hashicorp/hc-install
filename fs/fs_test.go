@@ -16,6 +16,9 @@ var (
 
 	_ src.Findable       = &ExactVersion{}
 	_ src.LoggerSettable = &ExactVersion{}
+
+	_ src.Findable       = &Version{}
+	_ src.LoggerSettable = &Version{}
 )
 
 func TestExactVersion(t *testing.T) {
@@ -32,6 +35,25 @@ func TestExactVersion(t *testing.T) {
 	}
 	ev.SetLogger(testutil.TestLogger())
 	_, err := ev.Find(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestVersion(t *testing.T) {
+	t.Skip("TODO")
+	testutil.EndToEndTest(t)
+
+	// TODO: mock out command execution?
+
+	t.Setenv("PATH", "")
+
+	v := &Version{
+		Product:     product.Terraform,
+		Constraints: version.MustConstraints(version.NewConstraint(">= 1.0")),
+	}
+	v.SetLogger(testutil.TestLogger())
+	_, err := v.Find(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}

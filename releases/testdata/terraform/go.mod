@@ -1,4 +1,4 @@
-module github.com/hashicorp/hc-install/releases/testdata/terraform
+module github.com/magodo/hc-install/releases/testdata/terraform
 
 go 1.17
 

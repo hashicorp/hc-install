@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/go-cleanhttp"
-	"github.com/hashicorp/hc-install/internal/version"
+	"github.com/magodo/hc-install/internal/version"
 )
 
 // NewHTTPClient provides a pre-configured http.Client

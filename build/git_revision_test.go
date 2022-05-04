@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/hc-install/internal/testutil"
-	"github.com/hashicorp/hc-install/product"
-	"github.com/hashicorp/hc-install/src"
+	"github.com/magodo/hc-install/internal/testutil"
+	"github.com/magodo/hc-install/product"
+	"github.com/magodo/hc-install/src"
 )
 
 var (

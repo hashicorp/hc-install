@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/hc-install/product"
+	"github.com/magodo/hc-install/product"
 )
 
 func TestLatestVersionValidate(t *testing.T) {

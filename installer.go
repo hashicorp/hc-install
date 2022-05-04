@@ -7,8 +7,8 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/hc-install/errors"
-	"github.com/hashicorp/hc-install/src"
+	"github.com/magodo/hc-install/errors"
+	"github.com/magodo/hc-install/src"
 )
 
 type Installer struct {

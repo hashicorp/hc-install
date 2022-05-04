@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	isrc "github.com/hashicorp/hc-install/internal/src"
+	isrc "github.com/magodo/hc-install/internal/src"
 )
 
 // Source represents an installer, finder, or builder

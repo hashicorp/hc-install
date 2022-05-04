@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/hashicorp/hc-install/fs"
-	"github.com/hashicorp/hc-install/internal/testutil"
-	"github.com/hashicorp/hc-install/product"
-	"github.com/hashicorp/hc-install/releases"
-	"github.com/hashicorp/hc-install/src"
+	"github.com/magodo/hc-install/fs"
+	"github.com/magodo/hc-install/internal/testutil"
+	"github.com/magodo/hc-install/product"
+	"github.com/magodo/hc-install/releases"
+	"github.com/magodo/hc-install/src"
 )
 
 func TestInstaller_Ensure_installable(t *testing.T) {

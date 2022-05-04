@@ -10,9 +10,9 @@ import (
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
-	isrc "github.com/hashicorp/hc-install/internal/src"
-	"github.com/hashicorp/hc-install/internal/validators"
-	"github.com/hashicorp/hc-install/product"
+	isrc "github.com/magodo/hc-install/internal/src"
+	"github.com/magodo/hc-install/internal/validators"
+	"github.com/magodo/hc-install/product"
 )
 
 var (

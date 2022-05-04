@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/hashicorp/hc-install/internal/httpclient"
+	"github.com/magodo/hc-install/internal/httpclient"
 	"golang.org/x/crypto/openpgp"
 )
 

@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/hc-install/errors"
-	"github.com/hashicorp/hc-install/internal/src"
-	"github.com/hashicorp/hc-install/internal/validators"
-	"github.com/hashicorp/hc-install/product"
+	"github.com/magodo/hc-install/errors"
+	"github.com/magodo/hc-install/internal/src"
+	"github.com/magodo/hc-install/internal/validators"
+	"github.com/magodo/hc-install/product"
 )
 
 // ExactVersion finds the first executable binary of the product name

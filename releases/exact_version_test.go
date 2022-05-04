@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/hc-install/product"
+	"github.com/magodo/hc-install/product"
 )
 
 func TestExactVersionValidate(t *testing.T) {

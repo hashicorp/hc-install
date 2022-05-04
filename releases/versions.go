@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-version"
-	rjson "github.com/hashicorp/hc-install/internal/releasesjson"
-	"github.com/hashicorp/hc-install/internal/validators"
-	"github.com/hashicorp/hc-install/product"
-	"github.com/hashicorp/hc-install/src"
+	rjson "github.com/magodo/hc-install/internal/releasesjson"
+	"github.com/magodo/hc-install/internal/validators"
+	"github.com/magodo/hc-install/product"
+	"github.com/magodo/hc-install/src"
 )
 
 // Versions allows listing all versions of a product

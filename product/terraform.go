@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/hc-install/internal/build"
+	"github.com/magodo/hc-install/internal/build"
 )
 
 var (

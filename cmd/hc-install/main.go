@@ -1,131 +1,138 @@
 package main
 
-// import (
-// 	"context"
-// 	"flag"
-// 	"io/ioutil"
-// 	"log"
-// 	"os"
-// 	"strings"
+import (
+	"context"
+	"fmt"
+	"io"
+	"log"
+	"os"
+	"path/filepath"
 
-// 	"github.com/hashicorp/logutils"
-// 	"github.com/mitchellh/cli"
+	"github.com/hashicorp/go-version"
+	hci "github.com/hashicorp/hc-install"
+	"github.com/hashicorp/hc-install/product"
+	"github.com/hashicorp/hc-install/releases"
+	"github.com/hashicorp/hc-install/src"
+	"github.com/hashicorp/logutils"
+	"github.com/mitchellh/cli"
+	"gophers.dev/pkgs/extractors/env"
+	"gophers.dev/pkgs/ignore"
+)
 
-// 	"github.com/hashicorp/hcinstall"
-// )
+func main() {
+	filter := &logutils.LevelFilter{
+		Levels:   []logutils.LogLevel{"DEBUG", "WARN", "ERROR"},
+		MinLevel: logutils.LogLevel("WARN"),
+		Writer:   os.Stderr,
+	}
+	log.SetOutput(filter)
 
-// // TODO: add versioning to this?
-// const userAgentAppend = "hcinstall-cli"
+	ui := &cli.ColoredUi{
+		ErrorColor: cli.UiColorRed,
+		WarnColor:  cli.UiColorYellow,
+		Ui: &cli.BasicUi{
+			Reader:      os.Stdin,
+			Writer:      os.Stdout,
+			ErrorWriter: os.Stderr,
+		},
+	}
 
-// func main() {
-// 	filter := &logutils.LevelFilter{
-// 		Levels:   []logutils.LogLevel{"DEBUG", "WARN", "ERROR"},
-// 		MinLevel: logutils.LogLevel("WARN"),
-// 		Writer:   os.Stderr,
-// 	}
-// 	log.SetOutput(filter)
+	exitStatus := run(ui, os.Args[1:])
 
-// 	ui := &cli.ColoredUi{
-// 		ErrorColor: cli.UiColorRed,
-// 		WarnColor:  cli.UiColorYellow,
-// 		Ui: &cli.BasicUi{
-// 			Reader:      os.Stdin,
-// 			Writer:      os.Stdout,
-// 			ErrorWriter: os.Stderr,
-// 		},
-// 	}
+	os.Exit(exitStatus)
+}
 
-// 	exitStatus := run(ui, os.Args[1:])
+func run(ui cli.Ui, args []string) int {
+	if len(args) != 2 {
+		ui.Error("usage: hc-install PRODUCT VERSION")
+		return 1
+	}
 
-// 	os.Exit(exitStatus)
-// }
+	if err := install(ui, args[0], args[1]); err != nil {
+		msg := fmt.Sprintf("failed to install %s@%s: %v", args[0], args[1], err)
+		ui.Error(msg)
+		return 1
+	}
 
-// func help() string {
-// 	return `Usage: hcinstall [--dir=DIR] VERSION-OR-REF
+	return 0
+}
 
-//   Downloads, verifies, and installs a official releases of a binary
-//   from releases.hashicorp.com or downloads, compiles, and installs a version of
-//   the the binary from the GitHub repository.
+func install(ui cli.Ui, project, tag string) error {
+	msg := fmt.Sprintf("hc-install: will install %s@%s", project, tag)
+	ui.Info(msg)
 
-//   To download an official release, pass "latest" or a valid semantic versioning
-//   version string.
+	v := version.Must(version.NewVersion(tag))
+	i := hci.NewInstaller()
 
-//   To download and compile a version of the binary from the GitHub
-//   repository pass a ref in the form "refs/...", some examples are shown below.
+	var source src.Source
+	switch project {
+	case "consul":
+		source = &releases.ExactVersion{
+			Product: product.Consul,
+			Version: v,
+		}
+	case "vault":
+		source = &releases.ExactVersion{
+			Product: product.Vault,
+			Version: v,
+		}
+	default:
+		return fmt.Errorf("project %s cannot be downloaded", project)
+	}
 
-//   If a binary is successfully installed, its path will be printed to stdout.
+	ctx := context.Background()
+	executable, instErr := i.Ensure(ctx, []src.Source{source})
+	if instErr != nil {
+		return instErr
+	}
 
-//   Unless --dir is given, the default system temporary directory will be used.
+	if err := copyProgram(ui, executable); err != nil {
+		return err
+	}
 
-// Options:
-//   --dir          Directory into which to install the terraform binary. The
-//                  directory must exist.
+	return nil
+}
 
-// Examples:
-//   hcinstall terraform 0.12.28
-//   hcinstall consul latest
-//   hcinstall terraform 0.13.0-beta3
-//   hcinstall --dir=/home/kmoe/bin 0.12.28
-//   hcinstall refs/heads/master
-//   hcinstall refs/tags/v0.12.29
-//   hcinstall refs/pull/25633/head
-// `
-// }
+func copyProgram(ui cli.Ui, programPath string) error {
+	var (
+		gobin   string
+		gopath  string
+		program = filepath.Base(programPath)
+	)
+	if err := env.ParseOS(env.Schema{
+		"GOBIN":  env.String(&gobin, false),
+		"GOPATH": env.String(&gopath, false),
+	}); err != nil {
+		return err
+	}
 
-// func run(ui cli.Ui, args []string) int {
-// 	ctx := context.Background()
+	var destination string
+	switch {
+	case gobin != "":
+		destination = filepath.Join(gobin, program)
+	case gopath != "":
+		destination = filepath.Join(gopath, "bin", program)
+	}
 
-// 	args = os.Args[1:]
-// 	flags := flag.NewFlagSet("", flag.ExitOnError)
-// 	var tfDir string
-// 	flags.StringVar(&tfDir, "dir", "", "Local directory into which to install terraform")
+	msg := fmt.Sprintf("hc-install: copy executable to %s", destination)
+	ui.Info(msg)
 
-// 	err := flags.Parse(args)
-// 	if err != nil {
-// 		ui.Error(err.Error())
-// 		return 1
-// 	}
+	return clone(programPath, destination)
+}
 
-// 	if flags.NArg() != 1 {
-// 		ui.Error("Please specify VERSION-OR-REF")
-// 		ui.Output(help())
-// 		return 127
-// 	}
+func clone(source, destination string) error {
+	sFile, err := os.Open(source)
+	if err != nil {
+		return err
+	}
+	defer ignore.Close(sFile)
 
-// 	tfVersion := flags.Args()[0]
+	dFile, err := os.OpenFile(destination, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+	if err != nil {
+		return err
+	}
+	defer ignore.Close(dFile)
 
-// 	if tfDir == "" {
-// 		tfDir, err = ioutil.TempDir("", "hcinstall")
-// 		if err != nil {
-// 			ui.Error(err.Error())
-// 			return 1
-// 		}
-// 	}
-
-// 	var findArgs []hcinstall.ExecPathFinder
-
-// 	switch {
-// 	case tfVersion == "latest":
-// 		finder := hcinstall.LatestVersion(tfDir, false)
-// 		finder.UserAgent = userAgentAppend
-// 		findArgs = append(findArgs, finder)
-// 	case strings.HasPrefix(tfVersion, "refs/"):
-// 		findArgs = append(findArgs, gitref.Install(tfVersion, "", tfDir))
-// 	default:
-// 		if strings.HasPrefix(tfVersion, "v") {
-// 			tfVersion = tfVersion[1:]
-// 		}
-// 		finder := hcinstall.ExactVersion(tfVersion, tfDir)
-// 		finder.UserAgent = userAgentAppend
-// 		findArgs = append(findArgs, finder)
-// 	}
-
-// 	tfPath, err := hcinstall.Find(ctx, findArgs...)
-// 	if err != nil {
-// 		ui.Error(err.Error())
-// 		return 1
-// 	}
-
-// 	ui.Output(tfPath)
-// 	return 0
-// }
+	_, err = io.Copy(dFile, sFile)
+	return err
+}

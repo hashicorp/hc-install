@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hc-install/internal/testutil"
 	"github.com/hashicorp/hc-install/product"
+	"github.com/hashicorp/hc-install/releases"
 	"github.com/hashicorp/hc-install/src"
 )
 
@@ -45,16 +46,34 @@ func TestVersion(t *testing.T) {
 	testutil.EndToEndTest(t)
 
 	// TODO: mock out command execution?
-
 	t.Setenv("PATH", "")
 
+	ctx := context.Background()
+
+	p := t.TempDir()
+	ev := releases.ExactVersion{
+		Product:    product.Terraform,
+		Version:    version.Must(version.NewVersion("1.0.0")),
+		InstallDir: p,
+	}
+
+	if _, err := ev.Install(ctx); err != nil {
+		t.Fatalf("installing release version failed: %v", err)
+	}
+
+	// Version matches constraint
 	v := &Version{
 		Product:     product.Terraform,
 		Constraints: version.MustConstraints(version.NewConstraint(">= 1.0")),
 	}
 	v.SetLogger(testutil.TestLogger())
-	_, err := v.Find(context.Background())
-	if err != nil {
+	if _, err := v.Find(ctx); err != nil {
 		t.Fatal(err)
+	}
+
+	// Version mismatches constraint
+	v.Constraints = version.MustConstraints(version.NewConstraint("> 1.0"))
+	if _, err := v.Find(ctx); err == nil {
+		t.Fatal("expecting error")
 	}
 }

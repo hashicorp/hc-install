@@ -42,10 +42,6 @@ func TestExactVersion(t *testing.T) {
 }
 
 func TestVersion(t *testing.T) {
-	t.Skip("TODO")
-	testutil.EndToEndTest(t)
-
-	// TODO: mock out command execution?
 	t.Setenv("PATH", "")
 
 	ctx := context.Background()

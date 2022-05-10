@@ -42,11 +42,12 @@ func TestExactVersion(t *testing.T) {
 }
 
 func TestVersion(t *testing.T) {
-	t.Setenv("PATH", "")
+	testutil.EndToEndTest(t)
 
 	ctx := context.Background()
 
 	p := t.TempDir()
+	t.Setenv("PATH", p)
 	ev := releases.ExactVersion{
 		Product:    product.Terraform,
 		Version:    version.Must(version.NewVersion("1.0.0")),
@@ -64,7 +65,7 @@ func TestVersion(t *testing.T) {
 	}
 	v.SetLogger(testutil.TestLogger())
 	if _, err := v.Find(ctx); err != nil {
-		t.Fatal(err)
+		t.Fatalf("finding: %v", err)
 	}
 
 	// Version mismatches constraint

@@ -15,10 +15,7 @@ import (
 var consulVersionOutputRe = regexp.MustCompile(`Consul ` + simpleVersionRe)
 
 var (
-	v1_16 = version.Must(version.NewVersion("1.16"))
-	// TODO: version.MustConstraint() ?
-	v1_16c, _ = version.NewConstraint("1.16")
-	v1_18     = version.Must(version.NewVersion("1.18"))
+	v1_18 = version.Must(version.NewVersion("1.18"))
 )
 
 var Consul = Product{

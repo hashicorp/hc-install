@@ -7,8 +7,11 @@ func ModuleVersion() string {
 	version := "0.0.0-devel"
 
 	bi, ok := debug.ReadBuildInfo()
-	if ok {
+	if ok && bi.Main.Version != "" {
 		version = bi.Main.Version
+	}
+	if ok && bi.Main.Sum != "" {
+		version = bi.Main.Sum
 	}
 
 	return version

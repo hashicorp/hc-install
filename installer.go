@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/hc-install/errors"
+	"github.com/hashicorp/hc-install/internal/version"
 	"github.com/hashicorp/hc-install/src"
 )
 
@@ -31,6 +32,9 @@ func (i *Installer) SetLogger(logger *log.Logger) {
 }
 
 func (i *Installer) Ensure(ctx context.Context, sources []src.Source) (string, error) {
+	i.logger.Printf("hc-install %s - Ensure (%d sources)",
+		version.ModuleVersion(), len(sources))
+
 	var errs *multierror.Error
 
 	for _, source := range sources {
@@ -101,6 +105,9 @@ func (i *Installer) Ensure(ctx context.Context, sources []src.Source) (string, e
 }
 
 func (i *Installer) Install(ctx context.Context, sources []src.Installable) (string, error) {
+	i.logger.Printf("hc-install %s - Ensure (%d sources)",
+		version.ModuleVersion(), len(sources))
+
 	var errs *multierror.Error
 
 	i.removableSources = make([]src.Removable, 0)

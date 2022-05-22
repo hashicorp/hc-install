@@ -1,9 +1,15 @@
 package version
 
-const version = "0.1.0"
+import "runtime/debug"
 
 // ModuleVersion returns the current version of the github.com/hashicorp/hc-install Go module.
-// This is a function to allow for future possible enhancement using debug.BuildInfo.
 func ModuleVersion() string {
+	version := "0.0.0-devel"
+
+	bi, ok := debug.ReadBuildInfo()
+	if ok {
+		version = bi.Main.Version
+	}
+
 	return version
 }

@@ -17,7 +17,7 @@ import (
 
 var (
 	defaultPreCloneCheckTimeout = 1 * time.Minute
-	defaultCloneTimeout         = 2 * time.Minute
+	defaultCloneTimeout         = 5 * time.Minute
 	defaultBuildTimeout         = 10 * time.Minute
 
 	discardLogger = log.New(ioutil.Discard, "", 0)

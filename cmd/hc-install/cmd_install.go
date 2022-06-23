@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/hashicorp/go-version"
@@ -102,22 +103,18 @@ func (c *InstallCommand) install(project, tag, installDirPath string) error {
 	}
 	i := hci.NewInstaller()
 
-	var source src.Installable
-	switch project {
-	case "consul":
-		source = &releases.ExactVersion{
-			Product:    product.Consul,
-			Version:    v,
-			InstallDir: installDirPath,
-		}
-	case "vault":
-		source = &releases.ExactVersion{
-			Product:    product.Vault,
-			Version:    v,
-			InstallDir: installDirPath,
-		}
-	default:
-		return fmt.Errorf("project %s cannot be downloaded", project)
+	source := &releases.ExactVersion{
+		Product: product.Product{
+			Name: project,
+			BinaryName: func() string {
+				if runtime.GOOS == "windows" {
+					return fmt.Sprintf("%s.exe", project)
+				}
+				return project
+			},
+		},
+		Version:    v,
+		InstallDir: installDirPath,
 	}
 
 	ctx := context.Background()

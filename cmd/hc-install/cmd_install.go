@@ -92,11 +92,14 @@ Option flags must be provided before the positional argument`)
 	return 0
 }
 
-func (c *InstallCommand) install(project, tag, installDirPath string) error {
+func (c *InstallCommand) install(product, ver, installDirPath string) error {
 	msg := fmt.Sprintf("hc-install: will install %s@%s", project, tag)
 	c.Ui.Info(msg)
 
-	v := version.Must(version.NewVersion(tag))
+	v, err := version.NewVersion(tag)
+	if err != nil {
+		return fmt.Errorf("invalid version: %w", err)
+	}
 	i := hci.NewInstaller()
 
 	var source src.Source
@@ -116,7 +119,7 @@ func (c *InstallCommand) install(project, tag, installDirPath string) error {
 	}
 
 	ctx := context.Background()
-	executable, instErr := i.Ensure(ctx, []src.Source{source})
+	executable, instErr := i.Install(ctx, []src.Installable{source})
 	if instErr != nil {
 		return instErr
 	}

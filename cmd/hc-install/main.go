@@ -26,7 +26,7 @@ func main() {
 		},
 	}
 
-	c := cli.NewCLI("hc-install", "0.0.0")
+	c := cli.NewCLI("hc-install", version.ModuleVersion())
 	c.Args = os.Args[1:]
 	c.Commands = map[string]cli.CommandFactory{
 		"install": func() (cli.Command, error) {

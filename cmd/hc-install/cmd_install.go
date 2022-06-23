@@ -92,7 +92,7 @@ Option flags must be provided before the positional argument`)
 	return 0
 }
 
-func (c *InstallCommand) install(product, ver, installDirPath string) error {
+func (c *InstallCommand) install(project, tag, installDirPath string) error {
 	msg := fmt.Sprintf("hc-install: will install %s@%s", project, tag)
 	c.Ui.Info(msg)
 
@@ -102,33 +102,27 @@ func (c *InstallCommand) install(product, ver, installDirPath string) error {
 	}
 	i := hci.NewInstaller()
 
-	var source src.Source
+	var source src.Installable
 	switch project {
 	case "consul":
 		source = &releases.ExactVersion{
-			Product: product.Consul,
-			Version: v,
+			Product:    product.Consul,
+			Version:    v,
+			InstallDir: installDirPath,
 		}
 	case "vault":
 		source = &releases.ExactVersion{
-			Product: product.Vault,
-			Version: v,
+			Product:    product.Vault,
+			Version:    v,
+			InstallDir: installDirPath,
 		}
 	default:
 		return fmt.Errorf("project %s cannot be downloaded", project)
 	}
 
 	ctx := context.Background()
-	executable, instErr := i.Install(ctx, []src.Installable{source})
-	if instErr != nil {
-		return instErr
-	}
-
-	if err := c.copyProgram(executable, installDirPath); err != nil {
-		return err
-	}
-
-	return nil
+	_, err = i.Install(ctx, []src.Installable{source})
+	return err
 }
 
 func (c *InstallCommand) copyProgram(programPath, installDirPath string) error {

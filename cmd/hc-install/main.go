@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/hashicorp/hc-install/internal/version"
+
 	"github.com/hashicorp/logutils"
 	"github.com/mitchellh/cli"
 )

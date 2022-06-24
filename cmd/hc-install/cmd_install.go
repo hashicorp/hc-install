@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -12,7 +11,6 @@ import (
 
 	"github.com/hashicorp/go-version"
 	"github.com/mitchellh/cli"
-	"gophers.dev/pkgs/ignore"
 
 	hci "github.com/hashicorp/hc-install"
 	"github.com/hashicorp/hc-install/product"
@@ -44,7 +42,6 @@ Usage: hc-install install [options] -version <version> <product>
 }
 
 func (c *InstallCommand) Run(args []string) int {
-
 	var (
 		version        string
 		installDirPath string
@@ -84,22 +81,24 @@ Option flags must be provided before the positional argument`)
 		return 1
 	}
 
-	if err := c.install(product, version, installDirPath); err != nil {
+	installedPath, err := c.install(product, version, installDirPath)
+	if err != nil {
 		msg := fmt.Sprintf("failed to install %s@%s: %v", product, version, err)
 		c.Ui.Error(msg)
 		return 1
 	}
 
+	c.Ui.Info(fmt.Sprintf("installed %s@%s to %s", product, version, installedPath))
 	return 0
 }
 
-func (c *InstallCommand) install(project, tag, installDirPath string) error {
+func (c *InstallCommand) install(project, tag, installDirPath string) (string, error) {
 	msg := fmt.Sprintf("hc-install: will install %s@%s", project, tag)
 	c.Ui.Info(msg)
 
 	v, err := version.NewVersion(tag)
 	if err != nil {
-		return fmt.Errorf("invalid version: %w", err)
+		return "", fmt.Errorf("invalid version: %w", err)
 	}
 	i := hci.NewInstaller()
 
@@ -119,32 +118,5 @@ func (c *InstallCommand) install(project, tag, installDirPath string) error {
 
 	ctx := context.Background()
 	_, err = i.Install(ctx, []src.Installable{source})
-	return err
-}
-
-func (c *InstallCommand) copyProgram(programPath, installDirPath string) error {
-	program := filepath.Base(programPath)
-	destination := filepath.Join(installDirPath, program)
-
-	msg := fmt.Sprintf("hc-install: copy executable to %s", destination)
-	c.Ui.Info(msg)
-
-	return clone(programPath, destination)
-}
-
-func clone(source, destination string) error {
-	sFile, err := os.Open(source)
-	if err != nil {
-		return err
-	}
-	defer ignore.Close(sFile)
-
-	dFile, err := os.OpenFile(destination, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
-	if err != nil {
-		return err
-	}
-	defer ignore.Close(dFile)
-
-	_, err = io.Copy(dFile, sFile)
-	return err
+	return filepath.Join(installDirPath, source.Product.BinaryName()), err
 }

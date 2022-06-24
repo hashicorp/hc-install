@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -117,6 +116,5 @@ func (c *InstallCommand) install(project, tag, installDirPath string) (string, e
 	}
 
 	ctx := context.Background()
-	_, err = i.Install(ctx, []src.Installable{source})
-	return filepath.Join(installDirPath, source.Product.BinaryName()), err
+	return i.Install(ctx, []src.Installable{source})
 }

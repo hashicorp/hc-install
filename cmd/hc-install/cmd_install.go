@@ -75,7 +75,7 @@ Option flags must be provided before the positional argument`)
 		cwd, err := os.Getwd()
 		if err != nil {
 			c.Ui.Error(fmt.Sprintf("Could not get current working directory for default installation path: %v", err))
-            return 1
+			return 1
 		}
 		installDirPath = cwd
 	}

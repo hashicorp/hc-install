@@ -44,11 +44,7 @@ func HashSumFromHexDigest(hexDigest string) (HashSum, error) {
 	return HashSum(sumBytes), nil
 }
 
-func (cd *ChecksumDownloader) DownloadAndVerifyChecksums() (ChecksumFileMap, error) {
-	return cd.downloadAndVerifyChecksums(context.Background())
-}
-
-func (cd *ChecksumDownloader) downloadAndVerifyChecksums(ctx context.Context) (ChecksumFileMap, error) {
+func (cd *ChecksumDownloader) DownloadAndVerifyChecksums(ctx context.Context) (ChecksumFileMap, error) {
 	sigFilename, err := cd.findSigFilename(cd.ProductVersion)
 	if err != nil {
 		return nil, err

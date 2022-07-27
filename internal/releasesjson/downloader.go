@@ -43,7 +43,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 			Logger:           d.Logger,
 			ArmoredPublicKey: d.ArmoredPublicKey,
 		}
-		verifiedChecksums, err := v.downloadAndVerifyChecksums(ctx)
+		verifiedChecksums, err := v.DownloadAndVerifyChecksums(ctx)
 		if err != nil {
 			return err
 		}

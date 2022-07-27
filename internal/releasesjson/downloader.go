@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -42,7 +43,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 			Logger:           d.Logger,
 			ArmoredPublicKey: d.ArmoredPublicKey,
 		}
-		verifiedChecksums, err := v.DownloadAndVerifyChecksums()
+		verifiedChecksums, err := v.downloadAndVerifyChecksums(ctx)
 		if err != nil {
 			return err
 		}
@@ -74,7 +75,13 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 	}
 
 	d.Logger.Printf("downloading archive from %s", archiveURL)
-	resp, err := client.Get(archiveURL)
+
+	req, err := http.NewRequest(http.MethodGet, archiveURL, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request for %q: %w", archiveURL, err)
+	}
+	req = req.WithContext(ctx)
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}

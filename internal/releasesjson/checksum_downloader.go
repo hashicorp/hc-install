@@ -83,7 +83,7 @@ func (cd *ChecksumDownloader) downloadAndVerifyChecksums(ctx context.Context) (C
 		url.PathEscape(cd.ProductVersion.SHASUMS))
 	cd.Logger.Printf("downloading checksums from %s", shasumsURL)
 
-	req, err = http.NewRequest(http.MethodGet, sigURL, nil)
+	req, err = http.NewRequest(http.MethodGet, shasumsURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", shasumsURL, err)
 	}

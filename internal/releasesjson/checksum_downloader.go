@@ -57,11 +57,10 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums(ctx context.Context) (C
 		url.PathEscape(sigFilename))
 	cd.Logger.Printf("downloading signature from %s", sigURL)
 
-	req, err := http.NewRequest(http.MethodGet, sigURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, sigURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", sigURL, err)
 	}
-	req = req.WithContext(ctx)
 	sigResp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -79,11 +78,10 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums(ctx context.Context) (C
 		url.PathEscape(cd.ProductVersion.SHASUMS))
 	cd.Logger.Printf("downloading checksums from %s", shasumsURL)
 
-	req, err = http.NewRequest(http.MethodGet, shasumsURL, nil)
+	req, err = http.NewRequestWithContext(ctx, http.MethodGet, shasumsURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", shasumsURL, err)
 	}
-	req = req.WithContext(ctx)
 	sumsResp, err := client.Do(req)
 	if err != nil {
 		return nil, err

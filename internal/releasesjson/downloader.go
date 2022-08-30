@@ -76,11 +76,10 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 
 	d.Logger.Printf("downloading archive from %s", archiveURL)
 
-	req, err := http.NewRequest(http.MethodGet, archiveURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, archiveURL, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request for %q: %w", archiveURL, err)
 	}
-	req = req.WithContext(ctx)
 	resp, err := client.Do(req)
 	if err != nil {
 		return err

@@ -69,11 +69,10 @@ func (r *Releases) ListProductVersions(ctx context.Context, productName string) 
 		url.PathEscape(productName))
 	r.logger.Printf("requesting versions from %s", productIndexURL)
 
-	req, err := http.NewRequest(http.MethodGet, productIndexURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, productIndexURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", productIndexURL, err)
 	}
-	req = req.WithContext(ctx)
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -139,11 +138,10 @@ func (r *Releases) GetProductVersion(ctx context.Context, product string, versio
 		url.PathEscape(version.String()))
 	r.logger.Printf("requesting version from %s", indexURL)
 
-	req, err := http.NewRequest(http.MethodGet, indexURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, indexURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", indexURL, err)
 	}
-	req = req.WithContext(ctx)
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

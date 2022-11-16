@@ -115,9 +115,9 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		d.BaseURL = ev.apiBaseURL
 	}
 
-	zipFile, err := d.DownloadAndUnpack(ctx, pv, dstDir)
-	if zipFile != "" {
-		ev.pathsToRemove = append(ev.pathsToRemove, zipFile)
+	zipFilePath, err := d.DownloadAndUnpack(ctx, pv, dstDir)
+	if zipFilePath != "" {
+		ev.pathsToRemove = append(ev.pathsToRemove, zipFilePath)
 	}
 	if err != nil {
 		return "", err

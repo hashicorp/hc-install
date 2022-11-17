@@ -12,7 +12,7 @@ import (
 
 // installGoVersion installs given version of Go using Go
 // according to https://golang.org/doc/manage-install
-func (gb *GoBuild) installGoVersion(ctx context.Context, v *version.Version) (string, CleanupFunc, error) {
+func (gb *GoBuild) installGoVersion(ctx context.Context, v *version.Version) (Go, error) {
 	// trim 0 patch versions as that's how Go does it :shrug:
 	shortVersion := strings.TrimSuffix(v.String(), ".0")
 
@@ -22,7 +22,7 @@ func (gb *GoBuild) installGoVersion(ctx context.Context, v *version.Version) (st
 	cmd := exec.CommandContext(ctx, "go", "get", pkgURL)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", nil, fmt.Errorf("unable to install Go %s: %w\n%s", v, err, out)
+		return Go{}, fmt.Errorf("unable to install Go %s: %w\n%s", v, err, out)
 	}
 
 	cmdName := fmt.Sprintf("go%s", shortVersion)
@@ -31,7 +31,7 @@ func (gb *GoBuild) installGoVersion(ctx context.Context, v *version.Version) (st
 	cmd = exec.CommandContext(ctx, cmdName, "download")
 	out, err = cmd.CombinedOutput()
 	if err != nil {
-		return "", nil, fmt.Errorf("unable to download Go %s: %w\n%s", v, err, out)
+		return Go{}, fmt.Errorf("unable to download Go %s: %w\n%s", v, err, out)
 	}
 	gb.log().Printf("download of go %q finished", shortVersion)
 
@@ -49,5 +49,9 @@ func (gb *GoBuild) installGoVersion(ctx context.Context, v *version.Version) (st
 		}
 	}
 
-	return cmdName, cleanupFunc, nil
+	return Go{
+		Cmd:         cmdName,
+		CleanupFunc: cleanupFunc,
+		Version:     v,
+	}, nil
 }

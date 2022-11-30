@@ -48,6 +48,6 @@ var Vault = Product{
 	BuildInstructions: &BuildInstructions{
 		GitRepoURL:    "https://github.com/hashicorp/vault.git",
 		PreCloneCheck: &build.GoIsInstalled{},
-		Build:         &build.GoBuild{Version: v1_18},
+		Build:         &build.GoBuild{},
 	},
 }

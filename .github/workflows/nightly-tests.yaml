@@ -8,7 +8,6 @@ on:
 jobs:
   test:
     name: E2E Tests
-    needs: build
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     strategy:
@@ -16,7 +15,6 @@ jobs:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
     steps:
-
     - name: Set up Go
       uses: actions/setup-go@v3
       with:

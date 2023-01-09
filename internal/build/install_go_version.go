@@ -23,6 +23,13 @@ func (gb *GoBuild) installGoVersion(ctx context.Context, v *version.Version) (Go
 	cmd := exec.CommandContext(ctx, "go", "get", pkgURL)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
+		return Go{}, fmt.Errorf("unable to get Go %s: %w\n%s", v, err, out)
+	}
+
+	gb.log().Printf("go installing %q", pkgURL)
+	cmd = exec.CommandContext(ctx, "go", "install", pkgURL)
+	out, err = cmd.CombinedOutput()
+	if err != nil {
 		return Go{}, fmt.Errorf("unable to install Go %s: %w\n%s", v, err, out)
 	}
 

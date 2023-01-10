@@ -50,17 +50,35 @@ func (gb *GoBuild) Build(ctx context.Context, repoDir, targetDir, binaryName str
 		gb.logger.Printf("building using Go %s", reqGo.Version)
 	}
 
-	goArgs := []string{"build", "-o", filepath.Join(targetDir, binaryName)}
+	// `go build` would download dependencies as a side effect, but we attempt
+	// to do it early in a separate step, such that we can easily distinguish
+	// network failures from build failures.
+	//
+	// Note, that `go mod download` was introduced in Go 1.11
+	// See https://github.com/golang/go/commit/9f4ea6c2
+	minGoVersion := version.Must(version.NewVersion("1.11"))
+	if reqGo.Version.GreaterThanOrEqual(minGoVersion) {
+		downloadArgs := []string{"mod", "download"}
+		gb.log().Printf("executing %s %q in %q", reqGo.Cmd, downloadArgs, repoDir)
+		cmd := exec.CommandContext(ctx, reqGo.Cmd, downloadArgs...)
+		cmd.Dir = repoDir
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			return "", fmt.Errorf("unable to download dependencies: %w\n%s", err, out)
+		}
+	}
+
+	buildArgs := []string{"build", "-o", filepath.Join(targetDir, binaryName)}
 
 	if gb.DetectVendoring {
 		vendorDir := filepath.Join(repoDir, "vendor")
 		if fi, err := os.Stat(vendorDir); err == nil && fi.IsDir() {
-			goArgs = append(goArgs, "-mod", "vendor")
+			buildArgs = append(buildArgs, "-mod", "vendor")
 		}
 	}
 
-	gb.log().Printf("executing %s %q in %q", reqGo.Cmd, goArgs, repoDir)
-	cmd := exec.CommandContext(ctx, reqGo.Cmd, goArgs...)
+	gb.log().Printf("executing %s %q in %q", reqGo.Cmd, buildArgs, repoDir)
+	cmd := exec.CommandContext(ctx, reqGo.Cmd, buildArgs...)
 	cmd.Dir = repoDir
 	out, err := cmd.CombinedOutput()
 	if err != nil {

@@ -130,8 +130,8 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 		Depth:         1,
 	})
 	if err != nil {
-		return "", fmt.Errorf("unable to clone %s from %q: %w",
-			gr.Product.Name, gr.Product.BuildInstructions.GitRepoURL, err)
+		return "", fmt.Errorf("unable to clone %s from %q @ %q: %w",
+			gr.Product.Name, gr.Product.BuildInstructions.GitRepoURL, ref, err)
 	}
 	gr.log().Printf("cloning %s finished", gr.Product.Name)
 	head, err := repo.Head()

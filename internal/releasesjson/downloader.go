@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/hashicorp/hc-install/internal/httpclient"
 )
@@ -145,6 +146,11 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 	defer r.Close()
 
 	for _, f := range r.File {
+		if strings.Contains(f.Name, "..") {
+			// While we generally trust the source ZIP file
+			// we still reject path traversal attempts as a precaution.
+			continue
+		}
 		srcFile, err := f.Open()
 		if err != nil {
 			return pkgFilePath, err

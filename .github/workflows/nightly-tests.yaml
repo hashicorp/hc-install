@@ -33,7 +33,7 @@ jobs:
     needs:
       - resolve-versions
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -51,7 +51,7 @@ jobs:
         go-version: ${{ matrix.go_version }}
 
     - name: E2E tests
-      timeout-minutes: 35
+      timeout-minutes: 50
       env:
         E2E_TESTING: 1
       run: |

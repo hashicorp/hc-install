@@ -5,7 +5,7 @@ project "hc-install" {
   // but is required to be non-empty by CRT orchestrator
   team = "_UNUSED_"
   slack {
-    notification_channel = "C01QDH3Q37W"
+    notification_channel = "C01QDH3Q37W" // #feed-terraform-exec
   }
   github {
     organization     = "hashicorp"

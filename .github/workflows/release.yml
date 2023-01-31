@@ -1,0 +1,72 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (excl. prefix v)'
+        required: true
+        type: string
+      sha:
+        description: 'SHA (long version; 40 chars)'
+        required: true
+        type: string
+      branch:
+        description: 'Branch'
+        type: string
+        default: main
+
+jobs:
+  staging:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup bob
+        uses: hashicorp/action-setup-bob@v1
+        with:
+          github-token:
+            ${{ secrets.BOB_GITHUB_TOKEN }}
+      - name: Promote to staging
+        env:
+          BOB_GITHUB_TOKEN: ${{ secrets.BOB_GITHUB_TOKEN }}
+          VERSION: ${{ github.event.inputs.version }}
+          SHA: ${{ github.event.inputs.sha }}
+          BRANCH: main
+          ENVIRONMENT: staging
+        run: |
+          bob trigger-promotion \
+            --product-name=hc-install \
+            --environment=hc-install-oss \
+            --org=hashicorp \
+            --repo=hc-install \
+            --slack-channel=C01QDH3Q37W \
+            --product-version=$VERSION \
+            --sha=$SHA \
+            --branch=$BRANCH \
+            $ENVIRONMENT
+
+  production:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup bob
+        uses: hashicorp/action-setup-bob@v1
+        with:
+          github-token:
+            ${{ secrets.BOB_GITHUB_TOKEN }}
+      - name: Promote to production
+        env:
+          BOB_GITHUB_TOKEN: ${{ secrets.BOB_GITHUB_TOKEN }}
+          VERSION: ${{ github.event.inputs.version }}
+          SHA: ${{ github.event.inputs.sha }}
+          BRANCH: main
+          ENVIRONMENT: production
+        run: |
+          bob trigger-promotion \
+            --product-name=hc-install \
+            --environment=hc-install-oss \
+            --org=hashicorp \
+            --repo=hc-install \
+            --slack-channel=C01QDH3Q37W \
+            --product-version=$VERSION \
+            --sha=$SHA \
+            --branch=$BRANCH \
+            $ENVIRONMENT

@@ -2,6 +2,7 @@ package version
 
 import (
 	_ "embed"
+	"strings"
 
 	"github.com/hashicorp/go-version"
 )
@@ -16,5 +17,5 @@ var rawVersion string
 // In general downstream should not implement version-specific
 // logic and rely on this function to be present in future releases.
 func Version() *version.Version {
-	return version.Must(version.NewVersion(rawVersion))
+	return version.Must(version.NewVersion(strings.TrimSpace(rawVersion)))
 }

@@ -1,4 +1,4 @@
-package install
+package install_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/hashicorp/hc-install"
 	"github.com/hashicorp/hc-install/fs"
 	"github.com/hashicorp/hc-install/internal/testutil"
 	"github.com/hashicorp/hc-install/product"
@@ -20,7 +21,7 @@ func TestInstaller_Ensure_installable(t *testing.T) {
 	// so this is just a simple E2E test to ensure the public API
 	// also works and continues working
 
-	i := NewInstaller()
+	i := install.NewInstaller()
 	i.SetLogger(testutil.TestLogger())
 	ctx := context.Background()
 	_, err := i.Ensure(ctx, []src.Source{
@@ -54,7 +55,7 @@ func TestInstaller_Ensure_findable(t *testing.T) {
 	// so this is just a simple E2E test to ensure the public API
 	// also works and continues working
 
-	i := NewInstaller()
+	i := install.NewInstaller()
 	i.SetLogger(testutil.TestLogger())
 	ctx := context.Background()
 	_, err = i.Ensure(ctx, []src.Source{
@@ -78,7 +79,7 @@ func TestInstaller_Install(t *testing.T) {
 	// so this is just a simple E2E test to ensure the public API
 	// also works and continues working
 
-	i := NewInstaller()
+	i := install.NewInstaller()
 	i.SetLogger(testutil.TestLogger())
 	ctx := context.Background()
 	_, err := i.Install(ctx, []src.Installable{

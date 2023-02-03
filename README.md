@@ -62,3 +62,58 @@ Each comes with different trade-offs described below.
 ## Example Usage
 
 See examples at https://pkg.go.dev/github.com/hashicorp/hc-install#example-Installer.
+
+## CLI
+
+In addition to the Go library, which is the intended primary use case of `hc-install`, we also distribute CLI.
+
+The CLI comes with some trade-offs:
+
+ - more limited interface compared to the flexible Go API (installs specific versions of products via `releases.ExactVersion`)
+ - minimal environment pre-requisites (no need to compile Go code)
+ - see ["hc-install is not a package manager"](https://github.com/hashicorp/hc-install#hc-install-is-not-a-package-manager)
+
+### Installation
+
+Given that one of the key roles of the CLI/library is integrity checking, you should choose the installation method which involves the same level of integrity checks, and/or perform these checks yourself. `go install` provides only minimal to no integrity checks, depending on exact use. We recommend any of the installation methods documented below.
+
+#### Homebrew (macOS / Linux)
+
+[Homebrew](https://brew.sh)
+
+```
+brew install hashicorp/tap/hc-install
+```
+
+#### Linux
+
+We support Debian & Ubuntu via apt and RHEL, CentOS, Fedora and Amazon Linux via RPM.
+
+You can follow the instructions in the [Official Packaging Guide](https://www.hashicorp.com/official-packaging-guide) to install the package from the official HashiCorp-maintained repositories. The package name is `hc-install` in all repositories.
+
+#### Other platforms
+
+1. [Download for the latest version](https://releases.hashicorp.com/hc-install/) relevant for your operating system and architecture.
+2. Verify integrity by comparing the SHA256 checksums which are part of the release (called `hc-install_<VERSION>_SHA256SUMS`).
+3. Install it by unzipping it and moving it to a directory included in your system's `PATH`.
+4. Check that you have installed it correctly via `hc-install --version`.
+  You should see the latest version printed to your terminal.
+
+### Usage
+
+```
+Usage: hc-install install [options] -version <version> <product>
+
+  This command installs a HashiCorp product.
+  Options:
+    -version  [REQUIRED] Version of product to install.
+    -path     Path to directory where the product will be installed. Defaults
+              to current working directory.
+```
+```
+$ hc-install install -version 1.3.7 terraform
+```
+```
+hc-install: will install terraform@1.3.7
+installed terraform@1.3.7 to /current/working/dir/terraform
+```

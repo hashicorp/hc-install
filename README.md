@@ -110,8 +110,8 @@ Usage: hc-install install [options] -version <version> <product>
     -path     Path to directory where the product will be installed. Defaults
               to current working directory.
 ```
-```
-$ hc-install install -version 1.3.7 terraform
+```sh
+hc-install install -version 1.3.7 terraform
 ```
 ```
 hc-install: will install terraform@1.3.7

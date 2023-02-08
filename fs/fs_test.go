@@ -53,6 +53,7 @@ func TestVersion(t *testing.T) {
 		Version:    version.Must(version.NewVersion("1.0.0")),
 		InstallDir: p,
 	}
+	ev.SetLogger(testutil.TestLogger())
 
 	if _, err := ev.Install(ctx); err != nil {
 		t.Fatalf("installing release version failed: %v", err)

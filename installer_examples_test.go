@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/hc-install/src"
 )
 
-// ExampleInstaller_singleExactVersion demonstrates installation of a single exact version
+// Installation of a single exact version
 func ExampleInstaller() {
 	ctx := context.Background()
 	i := install.NewInstaller()

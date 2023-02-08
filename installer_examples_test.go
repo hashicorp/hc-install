@@ -34,7 +34,7 @@ func ExampleInstaller() {
 	// run any tests
 }
 
-// ExampleInstaller_latestVersionConstrained demonstrates locating or installing latest version per constraint
+// Locating or installing latest version per constraint
 func ExampleInstaller_latestVersionConstrained() {
 	ctx := context.Background()
 	i := install.NewInstaller()
@@ -60,7 +60,7 @@ func ExampleInstaller_latestVersionConstrained() {
 	// run any tests
 }
 
-// ExampleInstaller_multipleVersions demonstrates installation of multiple versions
+// Installation of multiple versions
 func ExampleInstaller_multipleVersions() {
 	ctx := context.Background()
 	i := install.NewInstaller()
@@ -95,7 +95,7 @@ func ExampleInstaller_multipleVersions() {
 	// run any 1.3 tests
 }
 
-// ExampleInstaller_installAndBuildMultipleVersions demonstrates installation and building of multiple versions
+// Installation and building of multiple versions
 func ExampleInstaller_installAndBuildMultipleVersions() {
 	ctx := context.Background()
 	i := install.NewInstaller()

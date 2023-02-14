@@ -2,6 +2,7 @@ package fs
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-version"
@@ -55,7 +56,8 @@ func TestVersion(t *testing.T) {
 	}
 	ev.SetLogger(testutil.TestLogger())
 
-	if _, err := ev.Install(ctx); err != nil {
+	execPath, err := ev.Install(ctx)
+	if err != nil {
 		t.Fatalf("installing release version failed: %v", err)
 	}
 
@@ -66,6 +68,28 @@ func TestVersion(t *testing.T) {
 	}
 	v.SetLogger(testutil.TestLogger())
 	if _, err := v.Find(ctx); err != nil {
+		// this occasionally fails on Windows and we don't know why
+		t.Logf("Terraform installed to %q", execPath)
+		t.Logf("PATH: %q", os.Getenv("PATH"))
+		t.Logf("PATHEXT: %q", os.Getenv("PATHEXT"))
+		fi, err := os.Stat(execPath)
+		if err != nil {
+			t.Logf("stat failed: %s", err)
+		} else {
+			t.Logf("exec path %s FileInfo:\n"+
+				" - Size: %d bytes\n"+
+				" - ModTime: %s\n"+
+				" - Perm: %s\n"+
+				" - IsDir?: %t\n"+
+				" - IsRegular?: %t\n",
+				execPath,
+				fi.Size(),
+				fi.ModTime(),
+				fi.Mode().Perm(),
+				fi.Mode().IsDir(),
+				fi.Mode().IsRegular())
+		}
+
 		t.Fatalf("finding: %v", err)
 	}
 

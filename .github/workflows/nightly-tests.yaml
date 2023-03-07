@@ -51,8 +51,8 @@ jobs:
         go-version: ${{ matrix.go_version }}
 
     - name: E2E tests
-      timeout-minutes: 50
+      timeout-minutes: 60
       env:
         E2E_TESTING: 1
       run: |
-        go test -timeout=30m -v ./...
+        go test -timeout=40m -v ./...

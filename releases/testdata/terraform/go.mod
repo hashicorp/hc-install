@@ -1,6 +1,6 @@
 module github.com/hashicorp/hc-install/releases/testdata/terraform
 
-go 1.17
+go 1.18
 
 require github.com/mitchellh/cli v1.1.5
 

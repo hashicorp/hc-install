@@ -15,7 +15,7 @@ jobs:
     outputs:
       go-version: ${{ steps.get-go-version.outputs.go-version }}
     steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # https://github.com/actions/checkout/releases/tag/v3.3.0
+      - uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # https://github.com/actions/checkout/releases/tag/v3.4.0
       - name: Determine Go version
         id: get-go-version
         run: |
@@ -29,7 +29,7 @@ jobs:
       product-base-version: ${{ steps.set-product-version.outputs.base-product-version }}
       product-prerelease-version: ${{ steps.set-product-version.outputs.prerelease-product-version }}
     steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # https://github.com/actions/checkout/releases/tag/v3.3.0
+      - uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # https://github.com/actions/checkout/releases/tag/v3.4.0
       - name: Set Product version
         id: set-product-version
         uses: hashicorp/actions-set-product-version@v1
@@ -41,7 +41,7 @@ jobs:
       filepath: ${{ steps.generate-metadata-file.outputs.filepath }}
     steps:
       - name: "Checkout directory"
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # https://github.com/actions/checkout/releases/tag/v3.3.0
+        uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # https://github.com/actions/checkout/releases/tag/v3.4.0
       - name: Generate metadata file
         id: generate-metadata-file
         uses: hashicorp/actions-generate-metadata@v1
@@ -81,7 +81,7 @@ jobs:
       fail-fast: true
     name: Go ${{ needs.get-go-version.outputs.go-version }} ${{ matrix.goos }} ${{ matrix.goarch }} build
     steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # https://github.com/actions/checkout/releases/tag/v3.3.0
+      - uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # https://github.com/actions/checkout/releases/tag/v3.4.0
       - uses: hashicorp/actions-go-build@v0.1.9
         env:
           BASE_VERSION: ${{ needs.set-product-version.outputs.product-base-version }}

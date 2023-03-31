@@ -23,7 +23,7 @@ bob trigger-promotion \
 	--branch=main \
 	staging
  ```
- 1. Use `bob` to promote artifacts to **production**
+ 6. Use `bob` to promote artifacts to **production**
  ```
 bob trigger-promotion \
 	--product-name=hc-install \
@@ -36,3 +36,5 @@ bob trigger-promotion \
 	--branch=main \
 	production
  ```
+7. Wait for a message in the Slack channel saying that authorisation is needed to promote artifacts to production. Click on the link and approve.
+8. Once notified that promotion is successful, go to https://github.com/hashicorp/crt-workflows-common/actions/workflows/promote-production-packaging.yml, locate the hc-install promote-production-packaging workflow, and approve.

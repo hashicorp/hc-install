@@ -12,7 +12,7 @@ require (
 	github.com/hashicorp/logutils v1.0.0
 	github.com/mitchellh/cli v1.1.5
 	golang.org/x/crypto v0.7.0
-	golang.org/x/mod v0.9.0
+	golang.org/x/mod v0.10.0
 )
 
 require (

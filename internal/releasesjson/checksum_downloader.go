@@ -15,8 +15,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/hashicorp/hc-install/internal/httpclient"
-	"golang.org/x/crypto/openpgp"
 )
 
 type ChecksumDownloader struct {
@@ -172,7 +172,7 @@ func (cd *ChecksumDownloader) verifySumsSignature(checksums, signature io.Reader
 		return err
 	}
 
-	_, err = openpgp.CheckDetachedSignature(el, checksums, signature)
+	_, err = openpgp.CheckDetachedSignature(el, checksums, signature, nil)
 	if err != nil {
 		return fmt.Errorf("unable to verify checksums signature: %w", err)
 	}

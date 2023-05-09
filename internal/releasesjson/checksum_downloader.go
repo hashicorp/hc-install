@@ -4,7 +4,6 @@
 package releasesjson
 
 import (
-	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -134,36 +133,6 @@ func fileMapFromChecksums(checksums strings.Builder) (ChecksumFileMap, error) {
 		csMap[parts[1]] = h
 	}
 	return csMap, nil
-}
-
-func compareChecksum(logger *log.Logger, r io.Reader, verifiedHashSum HashSum, filename string, expectedSize int64) error {
-	h := sha256.New()
-
-	// This may take a while depending on network connection as the io.Reader
-	// is expected to be http.Response.Body which streams the bytes
-	// on demand over the network.
-	logger.Printf("copying %q (%d bytes) to calculate checksum", filename, expectedSize)
-	bytesCopied, err := io.Copy(h, r)
-	if err != nil {
-		return err
-	}
-	logger.Printf("copied %d bytes of %q", bytesCopied, filename)
-
-	if expectedSize != 0 && bytesCopied != int64(expectedSize) {
-		return fmt.Errorf("unexpected size (downloaded: %d, expected: %d)",
-			bytesCopied, expectedSize)
-	}
-
-	calculatedSum := h.Sum(nil)
-	if !bytes.Equal(calculatedSum, verifiedHashSum) {
-		return fmt.Errorf("checksum mismatch (expected %q, calculated %q)",
-			verifiedHashSum,
-			hex.EncodeToString(calculatedSum))
-	}
-
-	logger.Printf("checksum matches: %q", hex.EncodeToString(calculatedSum))
-
-	return nil
 }
 
 func (cd *ChecksumDownloader) verifySumsSignature(checksums, signature io.Reader) error {

@@ -126,10 +126,11 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 			return "", err
 		}
 
-		if !bytes.Equal(h.Sum(nil), verifiedChecksum) {
+		calculatedSum := h.Sum(nil)
+		if !bytes.Equal(calculatedSum, verifiedChecksum) {
 			return pkgFilePath, fmt.Errorf(
 				"checksum mismatch (expected: %x, got: %x)",
-				verifiedChecksum, h.Sum(nil),
+				verifiedChecksum, calculatedSum,
 			)
 		}
 	} else {

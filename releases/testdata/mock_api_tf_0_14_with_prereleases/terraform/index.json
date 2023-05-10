@@ -22,6 +22,14 @@
                 {
                     "name": "terraform",
                     "version": "0.14.11",
+                    "os": "darwin",
+                    "arch": "arm64",
+                    "filename": "terraform_0.14.11_darwin_arm64.zip",
+                    "url": "https://releases.hashicorp.com/terraform/0.14.11/terraform_0.14.11_darwin_arm64.zip"
+                },
+                {
+                    "name": "terraform",
+                    "version": "0.14.11",
                     "os": "freebsd",
                     "arch": "386",
                     "filename": "terraform_0.14.11_freebsd_386.zip",

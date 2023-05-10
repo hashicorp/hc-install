@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func NewTestServer(t *testing.T, mockDir string) *httptest.Server {
+func NewTestServer(t testing.TB, mockDir string) *httptest.Server {
 	t.Helper()
 
 	mux := http.NewServeMux()

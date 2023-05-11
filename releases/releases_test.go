@@ -5,6 +5,7 @@ package releases
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -153,7 +154,34 @@ func TestExactVersion(t *testing.T) {
 	}
 }
 
-func getTestPubKey(t *testing.T) string {
+func BenchmarkExactVersion(b *testing.B) {
+	mockApiRoot := filepath.Join("testdata", "mock_api_tf_0_14_with_prereleases")
+
+	for i := 0; i < b.N; i++ {
+		installDir, err := ioutil.TempDir("", fmt.Sprintf("%s_%d", "terraform", i))
+		if err != nil {
+			b.Fatal(err)
+		}
+
+		ev := &ExactVersion{
+			Product:          product.Terraform,
+			Version:          version.Must(version.NewVersion("0.14.11")),
+			ArmoredPublicKey: getTestPubKey(b),
+			apiBaseURL:       testutil.NewTestServer(b, mockApiRoot).URL,
+			InstallDir:       installDir,
+		}
+		ev.SetLogger(testutil.TestLogger())
+
+		ctx := context.Background()
+		_, err = ev.Install(ctx)
+		if err != nil {
+			b.Fatal(err)
+		}
+		b.Cleanup(func() { ev.Remove(ctx) })
+	}
+}
+
+func getTestPubKey(t testing.TB) string {
 	f, err := os.Open(filepath.Join("testdata", "2FCA0A85.pub"))
 	b, err := ioutil.ReadAll(f)
 	if err != nil {

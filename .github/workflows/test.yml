@@ -33,13 +33,13 @@ jobs:
       -
         name: Resolve old stable version
         id: oldstable
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # https://github.com/actions/setup-go/releases/tag/v4.0.0
+        uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # https://github.com/actions/setup-go/releases/tag/v4.0.1
         with:
           go-version: oldstable
       -
         name: Resolve stable version
         id: stable
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # https://github.com/actions/setup-go/releases/tag/v4.0.0
+        uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # https://github.com/actions/setup-go/releases/tag/v4.0.1
         with:
           go-version: stable
     outputs:
@@ -60,7 +60,7 @@ jobs:
           - ${{ needs.resolve-versions.outputs.stable }}
     steps:
     - name: Set up Go
-      uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # https://github.com/actions/setup-go/releases/tag/v4.0.0
+      uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # https://github.com/actions/setup-go/releases/tag/v4.0.1
       with:
         go-version: ${{ matrix.go_version }}
       id: go
@@ -98,7 +98,7 @@ jobs:
     steps:
 
     - name: Set up Go
-      uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # https://github.com/actions/setup-go/releases/tag/v4.0.0
+      uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # https://github.com/actions/setup-go/releases/tag/v4.0.1
       with:
         go-version: ${{ matrix.go_version }}
       id: go

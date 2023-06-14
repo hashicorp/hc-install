@@ -12,7 +12,7 @@ require (
 	github.com/hashicorp/go-version v1.6.0
 	github.com/hashicorp/logutils v1.0.0
 	github.com/mitchellh/cli v1.1.5
-	golang.org/x/mod v0.10.0
+	golang.org/x/mod v0.11.0
 )
 
 require (

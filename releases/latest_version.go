@@ -27,6 +27,8 @@ type LatestVersion struct {
 	InstallDir         string
 	Timeout            time.Duration
 	IncludePrereleases bool
+	Enterprise         bool   // Require "+ent" suffix?
+	EnterpriseMeta     string // "hsm", "fips1402", "hsm.fips1402", etc.
 
 	SkipChecksumVerification bool
 
@@ -156,10 +158,15 @@ func (lv *LatestVersion) Remove(ctx context.Context) error {
 }
 
 func (lv *LatestVersion) findLatestMatchingVersion(pvs rjson.ProductVersionsMap, vc version.Constraints) (*rjson.ProductVersion, bool) {
+	requiredMetadata := lv.requiredMetadata()
 	versions := make(version.Collection, 0)
 	for _, pv := range pvs.AsSlice() {
 		if !lv.IncludePrereleases && pv.Version.Prerelease() != "" {
 			// skip prereleases if desired
+			continue
+		}
+
+		if pv.Version.Metadata() != requiredMetadata {
 			continue
 		}
 
@@ -174,4 +181,15 @@ func (lv *LatestVersion) findLatestMatchingVersion(pvs rjson.ProductVersionsMap,
 	latestVersion := versions[len(versions)-1]
 
 	return pvs[latestVersion.Original()], true
+}
+
+func (lv *LatestVersion) requiredMetadata() string {
+	metadata := ""
+	if lv.Enterprise {
+		metadata += "ent"
+	}
+	if lv.EnterpriseMeta != "" {
+		metadata += "." + lv.EnterpriseMeta
+	}
+	return metadata
 }

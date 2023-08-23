@@ -112,8 +112,8 @@ jobs:
         go test -v -race ./...
 
     - name: E2E tests
-      timeout-minutes: 35
+      timeout-minutes: 70
       env:
         E2E_TESTING: 1
       run: |
-        go test -timeout=30m -v ./...
+        go test -timeout=60m -v ./...

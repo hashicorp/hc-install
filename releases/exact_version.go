@@ -68,6 +68,10 @@ func (ev *ExactVersion) Validate() error {
 		return fmt.Errorf("unknown version")
 	}
 
+	if err := ev.Enterprise.validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -119,7 +123,7 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		d.BaseURL = ev.apiBaseURL
 	}
 
-	zipFilePath, err := d.DownloadAndUnpack(ctx, pv, dstDir)
+	zipFilePath, err := d.DownloadAndUnpack(ctx, pv, dstDir, ev.Enterprise.LicenseDir)
 	if zipFilePath != "" {
 		ev.pathsToRemove = append(ev.pathsToRemove, zipFilePath)
 	}

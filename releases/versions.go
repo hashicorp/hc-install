@@ -46,6 +46,10 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 		return nil, fmt.Errorf("invalid product name: %q", v.Product.Name)
 	}
 
+	if err := v.Enterprise.validate(); err != nil {
+		return nil, err
+	}
+
 	timeout := defaultListTimeout
 	if v.ListTimeout > 0 {
 		timeout = v.ListTimeout

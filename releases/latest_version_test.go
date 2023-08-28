@@ -42,6 +42,15 @@ func TestLatestVersionValidate(t *testing.T) {
 				Product: product.Terraform,
 			},
 		},
+		"Enterprise-missing-license-dir": {
+			lv: LatestVersion{
+				Product: product.Vault,
+				Enterprise: EnterpriseOptions{
+					Enterprise: true,
+				},
+			},
+			expectedErr: fmt.Errorf("license dir must be provided when requesting enterprise versions"),
+		},
 	}
 
 	for name, testCase := range testCases {

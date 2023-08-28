@@ -29,7 +29,7 @@ type Downloader struct {
 	BaseURL          string
 }
 
-func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, dstDir string) (zipFilePath string, err error) {
+func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, binDir string, licenseDir string) (zipFilePath string, err error) {
 	if len(pv.Builds) == 0 {
 		return "", fmt.Errorf("no builds found for %s %s", pv.Name, pv.Version)
 	}
@@ -166,6 +166,14 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 			return pkgFilePath, err
 		}
 
+		// Determine the appropriate destination file path
+		var dstDir string
+		if isLicenseFile(f.Name) && licenseDir != "" {
+			dstDir = licenseDir
+		} else {
+			dstDir = binDir
+		}
+
 		d.Logger.Printf("unpacking %s to %s", f.Name, dstDir)
 		dstPath := filepath.Join(dstDir, f.Name)
 		dstFile, err := os.Create(dstPath)
@@ -195,6 +203,22 @@ var zipMimeTypes = []string{
 func contentTypeIsZip(contentType string) bool {
 	for _, mt := range zipMimeTypes {
 		if mt == contentType {
+			return true
+		}
+	}
+	return false
+}
+
+// Enterprise products have a few additional license files
+// that need to be extracted to a separate directory
+var licenseFiles = []string{
+	"EULA.txt",
+	"TermsOfEvaluation.txt",
+}
+
+func isLicenseFile(filename string) bool {
+	for _, lf := range licenseFiles {
+		if lf == filename {
 			return true
 		}
 	}

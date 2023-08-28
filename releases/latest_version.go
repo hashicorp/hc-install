@@ -64,6 +64,10 @@ func (lv *LatestVersion) Validate() error {
 		return fmt.Errorf("invalid binary name: %q", lv.Product.BinaryName())
 	}
 
+	if err := lv.Enterprise.validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -123,7 +127,7 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 	if lv.apiBaseURL != "" {
 		d.BaseURL = lv.apiBaseURL
 	}
-	zipFilePath, err := d.DownloadAndUnpack(ctx, versionToInstall, dstDir)
+	zipFilePath, err := d.DownloadAndUnpack(ctx, versionToInstall, dstDir, lv.Enterprise.LicenseDir)
 	if zipFilePath != "" {
 		lv.pathsToRemove = append(lv.pathsToRemove, zipFilePath)
 	}

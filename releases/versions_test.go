@@ -64,6 +64,7 @@ func TestVersions_List_enterprise(t *testing.T) {
 		Enterprise: EnterpriseOptions{
 			Enterprise: true,
 			Meta:       "hsm",
+			LicenseDir: "/some/path",
 		},
 	}
 

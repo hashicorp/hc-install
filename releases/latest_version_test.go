@@ -97,16 +97,20 @@ func TestLatestVersion_FindLatestMatchingVersion(t *testing.T) {
 		},
 		"enterprise": {
 			lv: LatestVersion{
-				Product:    product.Vault,
-				Enterprise: true,
+				Product: product.Vault,
+				Enterprise: EnterpriseOptions{
+					Enterprise: true,
+				},
 			},
 			expectedVersion: "1.14.1+ent",
 		},
 		"enterprise-fips1402": {
 			lv: LatestVersion{
-				Product:        product.Vault,
-				Enterprise:     true,
-				EnterpriseMeta: "fips1402",
+				Product: product.Vault,
+				Enterprise: EnterpriseOptions{
+					Enterprise: true,
+					Meta:       "fips1402",
+				},
 			},
 			expectedVersion: "1.14.1+ent.fips1402",
 		},

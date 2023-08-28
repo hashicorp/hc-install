@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hc-install"
 	"github.com/hashicorp/hc-install/fs"
 	"github.com/hashicorp/hc-install/internal/testutil"
@@ -93,6 +94,52 @@ func TestInstaller_Install(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	err = i.Remove(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestInstaller_Install_enterprise(t *testing.T) {
+	testutil.EndToEndTest(t)
+
+	// most of this logic is already tested within individual packages
+	// so this is just a simple E2E test to ensure the public API
+	// also works and continues working
+
+	tmpBinaryDir := t.TempDir()
+	tmpLicenseDir := t.TempDir()
+
+	i := install.NewInstaller()
+	i.SetLogger(testutil.TestLogger())
+	ctx := context.Background()
+	_, err := i.Install(ctx, []src.Installable{
+		&releases.ExactVersion{
+			Product:    product.Vault,
+			Version:    version.Must(version.NewVersion("1.9.8")),
+			InstallDir: tmpBinaryDir,
+			Enterprise: releases.EnterpriseOptions{
+				Enterprise: true,
+				LicenseDir: tmpLicenseDir,
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Ensure the binary was installed
+	if _, err = os.Stat(filepath.Join(tmpBinaryDir, "vault")); err != nil {
+		t.Fatal(err)
+	}
+	// Ensure the enterprise license files were installed
+	if _, err = os.Stat(filepath.Join(tmpLicenseDir, "EULA.txt")); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = os.Stat(filepath.Join(tmpLicenseDir, "TermsOfEvaluation.txt")); err != nil {
+		t.Fatal(err)
+	}
+
 	err = i.Remove(ctx)
 	if err != nil {
 		t.Fatal(err)

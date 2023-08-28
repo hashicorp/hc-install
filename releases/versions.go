@@ -21,6 +21,7 @@ import (
 type Versions struct {
 	Product     product.Product
 	Constraints version.Constraints
+	Enterprise  EnterpriseOptions
 
 	ListTimeout time.Duration
 
@@ -61,10 +62,17 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 	versions := pvs.AsSlice()
 	sort.Stable(versions)
 
+	requiredMetadata := v.Enterprise.requiredMetadata()
+
 	installables := make([]src.Source, 0)
 	for _, pv := range versions {
 		if !v.Constraints.Check(pv.Version) {
 			// skip version which doesn't match constraint
+			continue
+		}
+
+		if pv.Version.Metadata() != requiredMetadata {
+			// skip version which doesn't match required metadata for enterprise or OSS versions
 			continue
 		}
 
@@ -73,6 +81,7 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 			Version:    pv.Version,
 			InstallDir: v.Install.Dir,
 			Timeout:    v.Install.Timeout,
+			Enterprise: v.Enterprise,
 
 			ArmoredPublicKey:         v.Install.ArmoredPublicKey,
 			SkipChecksumVerification: v.Install.SkipChecksumVerification,

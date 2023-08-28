@@ -41,6 +41,7 @@ Each comes with different trade-offs described below.
  - `releases.{LatestVersion,ExactVersion}` - Downloads, verifies & installs any known product from `releases.hashicorp.com`
    - **Pros:**
      - Fast and reliable way of obtaining any pre-built version of any product
+     - Allows installation of enterprise versions
    - **Cons:**
      - Installation may consume some bandwidth, disk space and a little time
      - Potentially less stable builds (see `checkpoint` below)
@@ -49,7 +50,7 @@ Each comes with different trade-offs described below.
      - Checkpoint typically contains only product versions considered stable
    - **Cons:**
      - Installation may consume some bandwidth, disk space and a little time
-     - Currently doesn't allow installation of old versions (see `releases` above)
+     - Currently doesn't allow installation of old versions or enterprise versions (see `releases` above)
  - `build.GitRevision` - Clones raw source code and builds the product from it
    - **Pros:**
      - Useful for catching bugs and incompatibilities as early as possible (prior to product release).

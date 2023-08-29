@@ -167,11 +167,9 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 		}
 
 		// Determine the appropriate destination file path
-		var dstDir string
+		dstDir := binDir
 		if isLicenseFile(f.Name) && licenseDir != "" {
 			dstDir = licenseDir
-		} else {
-			dstDir = binDir
 		}
 
 		d.Logger.Printf("unpacking %s to %s", f.Name, dstDir)

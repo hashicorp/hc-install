@@ -22,7 +22,7 @@ func (eo *EnterpriseOptions) requiredMetadata() string {
 
 func (eo *EnterpriseOptions) validate() error {
 	if eo.LicenseDir == "" {
-		return fmt.Errorf("license dir must be provided when requesting enterprise versions")
+		return fmt.Errorf("LicenseDir must be provided when requesting enterprise versions")
 	}
 	return nil
 }

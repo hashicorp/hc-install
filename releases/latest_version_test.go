@@ -47,7 +47,7 @@ func TestLatestVersionValidate(t *testing.T) {
 				Product:    product.Vault,
 				Enterprise: &EnterpriseOptions{},
 			},
-			expectedErr: fmt.Errorf("license dir must be provided when requesting enterprise versions"),
+			expectedErr: fmt.Errorf("LicenseDir must be provided when requesting enterprise versions"),
 		},
 	}
 

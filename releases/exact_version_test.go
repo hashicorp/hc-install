@@ -54,7 +54,7 @@ func TestExactVersionValidate(t *testing.T) {
 				Version:    version.Must(version.NewVersion("1.9.8")),
 				Enterprise: &EnterpriseOptions{},
 			},
-			expectedErr: fmt.Errorf("license dir must be provided when requesting enterprise versions"),
+			expectedErr: fmt.Errorf("LicenseDir must be provided when requesting enterprise versions"),
 		},
 	}
 

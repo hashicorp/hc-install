@@ -7,6 +7,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/hashicorp/go-version"
@@ -129,7 +130,11 @@ func TestInstaller_Install_enterprise(t *testing.T) {
 	}
 
 	// Ensure the binary was installed
-	if _, err = os.Stat(filepath.Join(tmpBinaryDir, "vault")); err != nil {
+	binName := "vault"
+	if runtime.GOOS == "windows" {
+		binName = "vault.exe"
+	}
+	if _, err = os.Stat(filepath.Join(tmpBinaryDir, binName)); err != nil {
 		t.Fatal(err)
 	}
 	// Ensure the enterprise license files were installed

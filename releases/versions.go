@@ -21,7 +21,7 @@ import (
 type Versions struct {
 	Product     product.Product
 	Constraints version.Constraints
-	Enterprise  EnterpriseOptions
+	Enterprise  *EnterpriseOptions // require enterprise version if set (leave nil for OSS)
 
 	ListTimeout time.Duration
 
@@ -46,8 +46,10 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 		return nil, fmt.Errorf("invalid product name: %q", v.Product.Name)
 	}
 
-	if err := v.Enterprise.validate(); err != nil {
-		return nil, err
+	if v.Enterprise != nil {
+		if err := v.Enterprise.validate(); err != nil {
+			return nil, err
+		}
 	}
 
 	timeout := defaultListTimeout
@@ -66,7 +68,10 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 	versions := pvs.AsSlice()
 	sort.Stable(versions)
 
-	requiredMetadata := v.Enterprise.requiredMetadata()
+	requiredMetadata := ""
+	if v.Enterprise != nil {
+		requiredMetadata = v.Enterprise.requiredMetadata()
+	}
 
 	installables := make([]src.Source, 0)
 	for _, pv := range versions {
@@ -85,10 +90,16 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 			Version:    pv.Version,
 			InstallDir: v.Install.Dir,
 			Timeout:    v.Install.Timeout,
-			Enterprise: v.Enterprise,
 
 			ArmoredPublicKey:         v.Install.ArmoredPublicKey,
 			SkipChecksumVerification: v.Install.SkipChecksumVerification,
+		}
+
+		if v.Enterprise != nil {
+			ev.Enterprise = &EnterpriseOptions{
+				Meta:       v.Enterprise.Meta,
+				LicenseDir: v.Enterprise.LicenseDir,
+			}
 		}
 
 		installables = append(installables, ev)

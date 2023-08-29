@@ -27,7 +27,7 @@ type ExactVersion struct {
 	Version    *version.Version
 	InstallDir string
 	Timeout    time.Duration
-	Enterprise EnterpriseOptions
+	Enterprise *EnterpriseOptions // require enterprise version if set (leave nil for OSS)
 
 	SkipChecksumVerification bool
 
@@ -68,8 +68,10 @@ func (ev *ExactVersion) Validate() error {
 		return fmt.Errorf("unknown version")
 	}
 
-	if err := ev.Enterprise.validate(); err != nil {
-		return err
+	if ev.Enterprise != nil {
+		if err := ev.Enterprise.validate(); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -105,7 +107,11 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		rels.BaseURL = ev.apiBaseURL
 	}
 	rels.SetLogger(ev.log())
-	pv, err := rels.GetProductVersion(ctx, ev.Product.Name, versionWithMetadata(ev.Version, ev.Enterprise.requiredMetadata()))
+	installVersion := ev.Version
+	if ev.Enterprise != nil {
+		installVersion = versionWithMetadata(installVersion, ev.Enterprise.requiredMetadata())
+	}
+	pv, err := rels.GetProductVersion(ctx, ev.Product.Name, installVersion)
 	if err != nil {
 		return "", err
 	}
@@ -123,7 +129,11 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		d.BaseURL = ev.apiBaseURL
 	}
 
-	zipFilePath, err := d.DownloadAndUnpack(ctx, pv, dstDir, ev.Enterprise.LicenseDir)
+	licenseDir := ""
+	if ev.Enterprise != nil {
+		licenseDir = ev.Enterprise.LicenseDir
+	}
+	zipFilePath, err := d.DownloadAndUnpack(ctx, pv, dstDir, licenseDir)
 	if zipFilePath != "" {
 		ev.pathsToRemove = append(ev.pathsToRemove, zipFilePath)
 	}

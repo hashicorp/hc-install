@@ -119,8 +119,7 @@ func TestInstaller_Install_enterprise(t *testing.T) {
 			Product:    product.Vault,
 			Version:    version.Must(version.NewVersion("1.9.8")),
 			InstallDir: tmpBinaryDir,
-			Enterprise: releases.EnterpriseOptions{
-				Enterprise: true,
+			Enterprise: &releases.EnterpriseOptions{
 				LicenseDir: tmpLicenseDir,
 			},
 		},

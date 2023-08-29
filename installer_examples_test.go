@@ -144,9 +144,8 @@ func ExampleInstaller_enterpriseVersion() {
 		&releases.ExactVersion{
 			Product: product.Vault,
 			Version: v1_9,
-			Enterprise: releases.EnterpriseOptions{
-				Enterprise: true,
-				LicenseDir: licenseDir, // required for enterprise versions
+			Enterprise: &releases.EnterpriseOptions{ // specify that we want the enterprise version
+				LicenseDir: licenseDir, // where license files should be placed (required for enterprise versions)
 			},
 		},
 	})

@@ -61,8 +61,7 @@ func TestVersions_List_enterprise(t *testing.T) {
 	versions := &Versions{
 		Product:     product.Vault,
 		Constraints: cons,
-		Enterprise: EnterpriseOptions{
-			Enterprise: true,
+		Enterprise: &EnterpriseOptions{
 			Meta:       "hsm",
 			LicenseDir: "/some/path",
 		},
@@ -90,11 +89,11 @@ func TestVersions_List_enterprise(t *testing.T) {
 	}
 
 	for _, source := range sources {
-		if source.(*ExactVersion).Enterprise != versions.Enterprise {
+		if *source.(*ExactVersion).Enterprise != *versions.Enterprise {
 			t.Fatalf("unexpected Enterprise data: %v", source.(*ExactVersion).Enterprise)
 		}
 
-		if &source.(*ExactVersion).Enterprise == &versions.Enterprise {
+		if source.(*ExactVersion).Enterprise == versions.Enterprise {
 			t.Fatalf("the Enterprise data should be copied, not referenced")
 		}
 	}

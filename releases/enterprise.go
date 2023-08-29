@@ -8,16 +8,12 @@ import (
 )
 
 type EnterpriseOptions struct {
-	Enterprise bool
+	LicenseDir string // required
 	Meta       string // optional; may be "hsm", "fips1402", "hsm.fips1402", etc.
-	LicenseDir string // required when Enterprise is true
 }
 
 func (eo *EnterpriseOptions) requiredMetadata() string {
-	metadata := ""
-	if eo.Enterprise {
-		metadata += "ent"
-	}
+	metadata := "ent"
 	if eo.Meta != "" {
 		metadata += "." + eo.Meta
 	}
@@ -25,7 +21,7 @@ func (eo *EnterpriseOptions) requiredMetadata() string {
 }
 
 func (eo *EnterpriseOptions) validate() error {
-	if eo.Enterprise && eo.LicenseDir == "" {
+	if eo.LicenseDir == "" {
 		return fmt.Errorf("license dir must be provided when requesting enterprise versions")
 	}
 	return nil

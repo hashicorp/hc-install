@@ -27,7 +27,7 @@ type LatestVersion struct {
 	InstallDir         string
 	Timeout            time.Duration
 	IncludePrereleases bool
-	Enterprise         EnterpriseOptions
+	Enterprise         *EnterpriseOptions // require enterprise version if set (leave nil for OSS)
 
 	SkipChecksumVerification bool
 
@@ -64,8 +64,10 @@ func (lv *LatestVersion) Validate() error {
 		return fmt.Errorf("invalid binary name: %q", lv.Product.BinaryName())
 	}
 
-	if err := lv.Enterprise.validate(); err != nil {
-		return err
+	if lv.Enterprise != nil {
+		if err := lv.Enterprise.validate(); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -127,7 +129,11 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 	if lv.apiBaseURL != "" {
 		d.BaseURL = lv.apiBaseURL
 	}
-	zipFilePath, err := d.DownloadAndUnpack(ctx, versionToInstall, dstDir, lv.Enterprise.LicenseDir)
+	licenseDir := ""
+	if lv.Enterprise != nil {
+		licenseDir = lv.Enterprise.LicenseDir
+	}
+	zipFilePath, err := d.DownloadAndUnpack(ctx, versionToInstall, dstDir, licenseDir)
 	if zipFilePath != "" {
 		lv.pathsToRemove = append(lv.pathsToRemove, zipFilePath)
 	}
@@ -161,7 +167,11 @@ func (lv *LatestVersion) Remove(ctx context.Context) error {
 }
 
 func (lv *LatestVersion) findLatestMatchingVersion(pvs rjson.ProductVersionsMap, vc version.Constraints) (*rjson.ProductVersion, bool) {
-	requiredMetadata := lv.Enterprise.requiredMetadata()
+	requiredMetadata := ""
+	if lv.Enterprise != nil {
+		requiredMetadata = lv.Enterprise.requiredMetadata()
+	}
+
 	versions := make(version.Collection, 0)
 	for _, pv := range pvs.AsSlice() {
 		if !lv.IncludePrereleases && pv.Version.Prerelease() != "" {

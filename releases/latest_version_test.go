@@ -44,10 +44,8 @@ func TestLatestVersionValidate(t *testing.T) {
 		},
 		"Enterprise-missing-license-dir": {
 			lv: LatestVersion{
-				Product: product.Vault,
-				Enterprise: EnterpriseOptions{
-					Enterprise: true,
-				},
+				Product:    product.Vault,
+				Enterprise: &EnterpriseOptions{},
 			},
 			expectedErr: fmt.Errorf("license dir must be provided when requesting enterprise versions"),
 		},
@@ -106,19 +104,16 @@ func TestLatestVersion_FindLatestMatchingVersion(t *testing.T) {
 		},
 		"enterprise": {
 			lv: LatestVersion{
-				Product: product.Vault,
-				Enterprise: EnterpriseOptions{
-					Enterprise: true,
-				},
+				Product:    product.Vault,
+				Enterprise: &EnterpriseOptions{},
 			},
 			expectedVersion: "1.14.1+ent",
 		},
 		"enterprise-fips1402": {
 			lv: LatestVersion{
 				Product: product.Vault,
-				Enterprise: EnterpriseOptions{
-					Enterprise: true,
-					Meta:       "fips1402",
+				Enterprise: &EnterpriseOptions{
+					Meta: "fips1402",
 				},
 			},
 			expectedVersion: "1.14.1+ent.fips1402",

@@ -50,6 +50,55 @@ func TestVersions_List(t *testing.T) {
 	}
 }
 
+func TestVersions_List_enterprise(t *testing.T) {
+	testutil.EndToEndTest(t)
+
+	cons, err := version.NewConstraint(">= 1.9.0, < 1.9.9")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	versions := &Versions{
+		Product:     product.Vault,
+		Constraints: cons,
+		Enterprise: &EnterpriseOptions{
+			Meta:       "hsm",
+			LicenseDir: "/some/path",
+		},
+	}
+
+	ctx := context.Background()
+	sources, err := versions.List(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedVersions := []string{
+		"1.9.0+ent.hsm",
+		"1.9.1+ent.hsm",
+		"1.9.2+ent.hsm",
+		"1.9.3+ent.hsm",
+		"1.9.4+ent.hsm",
+		"1.9.5+ent.hsm",
+		"1.9.6+ent.hsm",
+		"1.9.7+ent.hsm",
+		"1.9.8+ent.hsm",
+	}
+	if diff := cmp.Diff(expectedVersions, sourcesToRawVersions(sources)); diff != "" {
+		t.Fatalf("unexpected versions: %s", diff)
+	}
+
+	for _, source := range sources {
+		if *source.(*ExactVersion).Enterprise != *versions.Enterprise {
+			t.Fatalf("unexpected Enterprise data: %v", source.(*ExactVersion).Enterprise)
+		}
+
+		if source.(*ExactVersion).Enterprise == versions.Enterprise {
+			t.Fatalf("the Enterprise data should be copied, not referenced")
+		}
+	}
+}
+
 func sourcesToRawVersions(srcs []src.Source) []string {
 	rawVersions := make([]string, len(srcs))
 

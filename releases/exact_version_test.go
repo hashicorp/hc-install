@@ -48,6 +48,14 @@ func TestExactVersionValidate(t *testing.T) {
 			},
 			expectedErr: fmt.Errorf("unknown version"),
 		},
+		"Enterprise-missing-license-dir": {
+			ev: ExactVersion{
+				Product:    product.Vault,
+				Version:    version.Must(version.NewVersion("1.9.8")),
+				Enterprise: &EnterpriseOptions{},
+			},
+			expectedErr: fmt.Errorf("LicenseDir must be provided when requesting enterprise versions"),
+		},
 	}
 
 	for name, testCase := range testCases {

@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/hc-install/internal/testutil"
 )
 
-func TestListProductVersions_excludesEnterpriseBuilds(t *testing.T) {
+func TestListProductVersions_includesEnterpriseBuilds(t *testing.T) {
 	testutil.EndToEndTest(t)
 
 	r := NewReleases()
@@ -25,12 +25,12 @@ func TestListProductVersions_excludesEnterpriseBuilds(t *testing.T) {
 
 	testEntVersion := "1.9.8+ent"
 	_, ok := pVersions[testEntVersion]
-	if ok {
-		t.Fatalf("Found unexpected Consul Enterprise version %q", testEntVersion)
+	if !ok {
+		t.Fatalf("Failed to find expected Consul Enterprise version %q", testEntVersion)
 	}
 }
 
-func TestGetProductVersion_excludesEnterpriseBuild(t *testing.T) {
+func TestGetProductVersion_includesEnterpriseBuild(t *testing.T) {
 	testutil.EndToEndTest(t)
 
 	r := NewReleases()
@@ -40,9 +40,13 @@ func TestGetProductVersion_excludesEnterpriseBuild(t *testing.T) {
 
 	testEntVersion := version.Must(version.NewVersion("1.9.8+ent"))
 
-	_, err := r.GetProductVersion(ctx, "consul", testEntVersion)
-	if err == nil {
-		t.Fatalf("Expected enterprise version %q to error out",
+	version, err := r.GetProductVersion(ctx, "consul", testEntVersion)
+	if err != nil {
+		t.Fatalf("Unexpected error getting enterprise version %q",
 			testEntVersion.String())
+	}
+
+	if version.RawVersion != testEntVersion.Original() {
+		t.Fatalf("Expected version %q, got %q", testEntVersion.String(), version.Version.String())
 	}
 }

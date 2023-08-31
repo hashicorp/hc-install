@@ -131,3 +131,28 @@ func ExampleInstaller_installAndBuildMultipleVersions() {
 		// run any tests
 	}
 }
+
+// Installation of a single exact enterprise version
+func ExampleInstaller_enterpriseVersion() {
+	ctx := context.Background()
+	i := install.NewInstaller()
+	defer i.Remove(ctx)
+	v1_9 := version.Must(version.NewVersion("1.9.8"))
+	licenseDir := "/some/path"
+
+	execPath, err := i.Install(ctx, []src.Installable{
+		&releases.ExactVersion{
+			Product: product.Vault,
+			Version: v1_9,
+			Enterprise: &releases.EnterpriseOptions{ // specify that we want the enterprise version
+				LicenseDir: licenseDir, // where license files should be placed (required for enterprise versions)
+			},
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("Vault %s Enterprise installed to %s; license information installed to %s", v1_9, execPath, licenseDir)
+
+	// run any tests
+}

@@ -46,10 +46,8 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 		return nil, fmt.Errorf("invalid product name: %q", v.Product.Name)
 	}
 
-	if v.Enterprise != nil {
-		if err := v.Enterprise.validate(); err != nil {
-			return nil, err
-		}
+	if err := validateEnterpriseOptions(v.Enterprise); err != nil {
+		return nil, err
 	}
 
 	timeout := defaultListTimeout
@@ -68,10 +66,7 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 	versions := pvs.AsSlice()
 	sort.Stable(versions)
 
-	requiredMetadata := ""
-	if v.Enterprise != nil {
-		requiredMetadata = v.Enterprise.requiredMetadata()
-	}
+	expectedMetadata := enterpriseVersionMetadata(v.Enterprise)
 
 	installables := make([]src.Source, 0)
 	for _, pv := range versions {
@@ -80,7 +75,7 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 			continue
 		}
 
-		if pv.Version.Metadata() != requiredMetadata {
+		if pv.Version.Metadata() != expectedMetadata {
 			// skip version which doesn't match required metadata for enterprise or OSS versions
 			continue
 		}
@@ -88,18 +83,12 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 		ev := &ExactVersion{
 			Product:    v.Product,
 			Version:    pv.Version,
+			Enterprise: v.Enterprise,
 			InstallDir: v.Install.Dir,
 			Timeout:    v.Install.Timeout,
 
 			ArmoredPublicKey:         v.Install.ArmoredPublicKey,
 			SkipChecksumVerification: v.Install.SkipChecksumVerification,
-		}
-
-		if v.Enterprise != nil {
-			ev.Enterprise = &EnterpriseOptions{
-				Meta:       v.Enterprise.Meta,
-				LicenseDir: v.Enterprise.LicenseDir,
-			}
 		}
 
 		installables = append(installables, ev)

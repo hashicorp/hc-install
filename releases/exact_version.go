@@ -27,7 +27,9 @@ type ExactVersion struct {
 	Version    *version.Version
 	InstallDir string
 	Timeout    time.Duration
-	Enterprise *EnterpriseOptions // require enterprise version if set (leave nil for OSS)
+
+	// Enterprise indicates installation of enterprise version (leave nil for Community editions)
+	Enterprise *EnterpriseOptions
 
 	SkipChecksumVerification bool
 
@@ -68,10 +70,8 @@ func (ev *ExactVersion) Validate() error {
 		return fmt.Errorf("unknown version")
 	}
 
-	if ev.Enterprise != nil {
-		if err := ev.Enterprise.validate(); err != nil {
-			return err
-		}
+	if err := validateEnterpriseOptions(ev.Enterprise); err != nil {
+		return err
 	}
 
 	return nil
@@ -109,7 +109,7 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 	rels.SetLogger(ev.log())
 	installVersion := ev.Version
 	if ev.Enterprise != nil {
-		installVersion = versionWithMetadata(installVersion, ev.Enterprise.requiredMetadata())
+		installVersion = versionWithMetadata(installVersion, enterpriseVersionMetadata(ev.Enterprise))
 	}
 	pv, err := rels.GetProductVersion(ctx, ev.Product.Name, installVersion)
 	if err != nil {

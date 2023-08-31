@@ -3,16 +3,21 @@
 
 package releases
 
-import (
-	"fmt"
-)
+import "fmt"
 
 type EnterpriseOptions struct {
-	LicenseDir string // required
-	Meta       string // optional; may be "hsm", "fips1402", "hsm.fips1402", etc.
+	// LicenseDir represents directory path where to install license files (required)
+	LicenseDir string
+
+	// Meta represents optional version metadata (e.g. hsm, fips1402)
+	Meta string
 }
 
-func (eo *EnterpriseOptions) requiredMetadata() string {
+func enterpriseVersionMetadata(eo *EnterpriseOptions) string {
+	if eo == nil {
+		return ""
+	}
+
 	metadata := "ent"
 	if eo.Meta != "" {
 		metadata += "." + eo.Meta
@@ -20,9 +25,14 @@ func (eo *EnterpriseOptions) requiredMetadata() string {
 	return metadata
 }
 
-func (eo *EnterpriseOptions) validate() error {
+func validateEnterpriseOptions(eo *EnterpriseOptions) error {
+	if eo == nil {
+		return nil
+	}
+
 	if eo.LicenseDir == "" {
 		return fmt.Errorf("LicenseDir must be provided when requesting enterprise versions")
 	}
+
 	return nil
 }

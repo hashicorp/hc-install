@@ -27,7 +27,9 @@ type LatestVersion struct {
 	InstallDir         string
 	Timeout            time.Duration
 	IncludePrereleases bool
-	Enterprise         *EnterpriseOptions // require enterprise version if set (leave nil for OSS)
+
+	// Enterprise indicates installation of enterprise version (leave nil for Community editions)
+	Enterprise *EnterpriseOptions
 
 	SkipChecksumVerification bool
 
@@ -64,10 +66,8 @@ func (lv *LatestVersion) Validate() error {
 		return fmt.Errorf("invalid binary name: %q", lv.Product.BinaryName())
 	}
 
-	if lv.Enterprise != nil {
-		if err := lv.Enterprise.validate(); err != nil {
-			return err
-		}
+	if err := validateEnterpriseOptions(lv.Enterprise); err != nil {
+		return err
 	}
 
 	return nil
@@ -167,11 +167,7 @@ func (lv *LatestVersion) Remove(ctx context.Context) error {
 }
 
 func (lv *LatestVersion) findLatestMatchingVersion(pvs rjson.ProductVersionsMap, vc version.Constraints) (*rjson.ProductVersion, bool) {
-	requiredMetadata := ""
-	if lv.Enterprise != nil {
-		requiredMetadata = lv.Enterprise.requiredMetadata()
-	}
-
+	expectedMetadata := enterpriseVersionMetadata(lv.Enterprise)
 	versions := make(version.Collection, 0)
 	for _, pv := range pvs.AsSlice() {
 		if !lv.IncludePrereleases && pv.Version.Prerelease() != "" {
@@ -179,7 +175,7 @@ func (lv *LatestVersion) findLatestMatchingVersion(pvs rjson.ProductVersionsMap,
 			continue
 		}
 
-		if pv.Version.Metadata() != requiredMetadata {
+		if pv.Version.Metadata() != expectedMetadata {
 			continue
 		}
 

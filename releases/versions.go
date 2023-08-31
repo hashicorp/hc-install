@@ -83,12 +83,18 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 		ev := &ExactVersion{
 			Product:    v.Product,
 			Version:    pv.Version,
-			Enterprise: v.Enterprise,
 			InstallDir: v.Install.Dir,
 			Timeout:    v.Install.Timeout,
 
 			ArmoredPublicKey:         v.Install.ArmoredPublicKey,
 			SkipChecksumVerification: v.Install.SkipChecksumVerification,
+		}
+
+		if v.Enterprise != nil {
+			ev.Enterprise = &EnterpriseOptions{
+				Meta:       v.Enterprise.Meta,
+				LicenseDir: v.Enterprise.LicenseDir,
+			}
 		}
 
 		installables = append(installables, ev)

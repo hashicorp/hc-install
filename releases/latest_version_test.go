@@ -84,6 +84,9 @@ func TestLatestVersion_FindLatestMatchingVersion(t *testing.T) {
 		"1.14.1": &rjson.ProductVersion{
 			Version: version.Must(version.NewVersion("1.14.1")),
 		},
+		"1.15.2": &rjson.ProductVersion{
+			Version: version.Must(version.NewVersion("1.15.2")),
+		},
 		"1.14.1+ent": &rjson.ProductVersion{
 			Version: version.Must(version.NewVersion("1.14.1+ent")),
 		},
@@ -96,9 +99,16 @@ func TestLatestVersion_FindLatestMatchingVersion(t *testing.T) {
 		lv              LatestVersion
 		expectedVersion string
 	}{
-		"oss": {
+		"oss1": {
 			lv: LatestVersion{
 				Product: product.Vault,
+			},
+			expectedVersion: "1.15.2",
+		},
+		"oss2": {
+			lv: LatestVersion{
+				Product:     product.Vault,
+				Constraints: version.MustConstraints(version.NewConstraint("~> 1.14.0")),
 			},
 			expectedVersion: "1.14.1",
 		},

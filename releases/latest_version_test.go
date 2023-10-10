@@ -94,7 +94,6 @@ func TestLatestVersion_FindLatestMatchingVersion(t *testing.T) {
 			Version: version.Must(version.NewVersion("1.14.1+ent.fips1402")),
 		},
 	}
-	constraints, _ := version.NewConstraint("~> 1.14.0")
 
 	testCases := map[string]struct {
 		lv              LatestVersion
@@ -109,7 +108,7 @@ func TestLatestVersion_FindLatestMatchingVersion(t *testing.T) {
 		"oss2": {
 			lv: LatestVersion{
 				Product:     product.Vault,
-				Constraints: constraints,
+				Constraints: version.MustConstraints(version.NewConstraint("~> 1.14.0")),
 			},
 			expectedVersion: "1.14.1",
 		},

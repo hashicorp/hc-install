@@ -13,7 +13,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/mitchellh/cli"
+	"github.com/hashicorp/cli"
 )
 
 var version = "0.0.0"

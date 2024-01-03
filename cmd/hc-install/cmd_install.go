@@ -11,8 +11,8 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/hashicorp/cli"
 	"github.com/hashicorp/go-version"
-	"github.com/mitchellh/cli"
 
 	hci "github.com/hashicorp/hc-install"
 	"github.com/hashicorp/hc-install/product"

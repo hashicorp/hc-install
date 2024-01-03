@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/hc-install/version"
 
+	"github.com/hashicorp/cli"
 	"github.com/hashicorp/logutils"
-	"github.com/mitchellh/cli"
 )
 
 func main() {

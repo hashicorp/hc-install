@@ -12,7 +12,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-version v1.6.0
 	github.com/hashicorp/logutils v1.0.0
-	golang.org/x/mod v0.15.0
+	golang.org/x/mod v0.16.0
 )
 
 require (

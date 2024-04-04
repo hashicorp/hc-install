@@ -46,7 +46,7 @@ func TestGetProductVersion_includesEnterpriseBuild(t *testing.T) {
 			testEntVersion.String())
 	}
 
-	if version.RawVersion != testEntVersion.Original() {
+	if version.Version.String() != testEntVersion.Original() {
 		t.Fatalf("Expected version %q, got %q", testEntVersion.String(), version.Version.String())
 	}
 }

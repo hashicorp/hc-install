@@ -7,6 +7,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
+	"log"
 	"os"
 	"runtime"
 	"strings"
@@ -39,6 +41,7 @@ Usage: hc-install install [options] -version <version> <product>
     -version  [REQUIRED] Version of product to install.
     -path     Path to directory where the product will be installed. Defaults
               to current working directory.
+    -log-file Path to file where logs will be written
 `
 	return strings.TrimSpace(helpText)
 }
@@ -47,12 +50,14 @@ func (c *InstallCommand) Run(args []string) int {
 	var (
 		version        string
 		installDirPath string
+		logFilePath    string
 	)
 
 	fs := flag.NewFlagSet("install", flag.ExitOnError)
 	fs.Usage = func() { c.Ui.Output(c.Help()) }
 	fs.StringVar(&version, "version", "", "version of product to install")
 	fs.StringVar(&installDirPath, "path", "", "path to directory where production will be installed")
+	fs.StringVar(&logFilePath, "log-file", "", "path to file where logs will be written")
 
 	if err := fs.Parse(args); err != nil {
 		return 1
@@ -83,7 +88,17 @@ Option flags must be provided before the positional argument`)
 		installDirPath = cwd
 	}
 
-	installedPath, err := c.install(product, version, installDirPath)
+	logger := log.New(io.Discard, "", 0)
+	if logFilePath != "" {
+		f, err := os.OpenFile(logFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+		if err != nil {
+			c.Ui.Error(fmt.Sprintf("unable to log into %q: %s", logFilePath, err))
+			return 1
+		}
+		logger = log.New(f, "[DEBUG] ", log.LstdFlags|log.Lshortfile|log.Lmicroseconds)
+	}
+
+	installedPath, err := c.install(product, version, installDirPath, logger)
 	if err != nil {
 		msg := fmt.Sprintf("failed to install %s@%s: %v", product, version, err)
 		c.Ui.Error(msg)
@@ -94,7 +109,7 @@ Option flags must be provided before the positional argument`)
 	return 0
 }
 
-func (c *InstallCommand) install(project, tag, installDirPath string) (string, error) {
+func (c *InstallCommand) install(project, tag, installDirPath string, logger *log.Logger) (string, error) {
 	msg := fmt.Sprintf("hc-install: will install %s@%s", project, tag)
 	c.Ui.Info(msg)
 
@@ -103,6 +118,7 @@ func (c *InstallCommand) install(project, tag, installDirPath string) (string, e
 		return "", fmt.Errorf("invalid version: %w", err)
 	}
 	i := hci.NewInstaller()
+	i.SetLogger(logger)
 
 	source := &releases.ExactVersion{
 		Product: product.Product{

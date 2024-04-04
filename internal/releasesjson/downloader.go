@@ -36,8 +36,8 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 
 	pb, ok := pv.Builds.FilterBuild(runtime.GOOS, runtime.GOARCH, "zip")
 	if !ok {
-		return "", fmt.Errorf("no ZIP archive found for %s %s %s/%s",
-			pv.Name, pv.Version, runtime.GOOS, runtime.GOARCH)
+		return "", fmt.Errorf("%s/%s ZIP archive for %s not found",
+			runtime.GOOS, runtime.GOARCH, pv.Name)
 	}
 
 	var verifiedChecksum HashSum

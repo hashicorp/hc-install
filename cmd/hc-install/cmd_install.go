@@ -39,9 +39,10 @@ Usage: hc-install install [options] -version <version> <product>
   This command installs a HashiCorp product.
   Options:
     -version  [REQUIRED] Version of product to install.
-    -path     Path to directory where the product will be installed. Defaults
-              to current working directory.
-    -log-file Path to file where logs will be written
+    -path     Path to directory where the product will be installed.
+              Defaults to current working directory.
+    -log-file Path to file where logs will be written. /dev/stdout
+              or /dev/stderr can be used to log to STDOUT/STDERR.
 `
 	return strings.TrimSpace(helpText)
 }

@@ -615,6 +615,14 @@
                 {
                     "name": "terraform",
                     "version": "0.15.0-rc2",
+                    "os": "darwin",
+                    "arch": "arm64",
+                    "filename": "terraform_0.15.0-rc2_darwin_arm64.zip",
+                    "url": "https://releases.hashicorp.com/terraform/0.15.0-rc2/terraform_0.15.0-rc2_darwin_arm64.zip"
+                },
+                {
+                    "name": "terraform",
+                    "version": "0.15.0-rc2",
                     "os": "freebsd",
                     "arch": "386",
                     "filename": "terraform_0.15.0-rc2_freebsd_386.zip",

@@ -54,7 +54,7 @@ func TestVersion(t *testing.T) {
 	t.Setenv("PATH", p)
 	ev := releases.ExactVersion{
 		Product:    product.Terraform,
-		Version:    version.Must(version.NewVersion("1.0.0")),
+		Version:    version.Must(version.NewVersion("1.1.0")),
 		InstallDir: p,
 	}
 	ev.SetLogger(testutil.TestLogger())
@@ -67,7 +67,7 @@ func TestVersion(t *testing.T) {
 	// Version matches constraint
 	v := &Version{
 		Product:     product.Terraform,
-		Constraints: version.MustConstraints(version.NewConstraint(">= 1.0")),
+		Constraints: version.MustConstraints(version.NewConstraint(">= 1.1")),
 	}
 	v.SetLogger(testutil.TestLogger())
 	if _, err := v.Find(ctx); err != nil {
@@ -97,7 +97,7 @@ func TestVersion(t *testing.T) {
 	}
 
 	// Version mismatches constraint
-	v.Constraints = version.MustConstraints(version.NewConstraint("> 1.0"))
+	v.Constraints = version.MustConstraints(version.NewConstraint("> 1.1"))
 	if _, err := v.Find(ctx); err == nil {
 		t.Fatal("expecting error")
 	}

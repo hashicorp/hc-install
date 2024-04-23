@@ -125,7 +125,7 @@ func TestLatestVersion_prereleases(t *testing.T) {
 func TestExactVersion(t *testing.T) {
 	testutil.EndToEndTest(t)
 
-	versionToInstall := version.Must(version.NewVersion("0.14.0"))
+	versionToInstall := version.Must(version.NewVersion("1.1.0"))
 	ev := &ExactVersion{
 		Product: product.Terraform,
 		Version: versionToInstall,

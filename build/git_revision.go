@@ -6,7 +6,7 @@ package build
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"time"
@@ -23,7 +23,7 @@ var (
 	defaultCloneTimeout         = 5 * time.Minute
 	defaultBuildTimeout         = 25 * time.Minute
 
-	discardLogger = log.New(ioutil.Discard, "", 0)
+	discardLogger = log.New(io.Discard, "", 0)
 )
 
 // GitRevision installs a particular git revision by cloning
@@ -101,7 +101,7 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 		gr.pathsToRemove = make([]string, 0)
 	}
 
-	repoDir, err := ioutil.TempDir("",
+	repoDir, err := os.MkdirTemp("",
 		fmt.Sprintf("hc-install-build-%s", gr.Product.Name))
 	if err != nil {
 		return "", err
@@ -160,7 +160,7 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 	}
 	installDir := gr.InstallDir
 	if installDir == "" {
-		tmpDir, err := ioutil.TempDir("",
+		tmpDir, err := os.MkdirTemp("",
 			fmt.Sprintf("hc-install-%s-%s", gr.Product.Name, head.Hash()))
 		if err != nil {
 			return "", err

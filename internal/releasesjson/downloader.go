@@ -10,7 +10,6 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -106,7 +105,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 
 	expectedSize := resp.ContentLength
 
-	pkgFile, err := ioutil.TempFile("", pb.Filename)
+	pkgFile, err := os.CreateTemp("", pb.Filename)
 	if err != nil {
 		return "", err
 	}

@@ -6,7 +6,7 @@ package releases
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -158,7 +158,7 @@ func BenchmarkExactVersion(b *testing.B) {
 	mockApiRoot := filepath.Join("testdata", "mock_api_tf_0_14_with_prereleases")
 
 	for i := 0; i < b.N; i++ {
-		installDir, err := ioutil.TempDir("", fmt.Sprintf("%s_%d", "terraform", i))
+		installDir, err := os.MkdirTemp("", fmt.Sprintf("%s_%d", "terraform", i))
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -183,7 +183,7 @@ func BenchmarkExactVersion(b *testing.B) {
 
 func getTestPubKey(t testing.TB) string {
 	f, err := os.Open(filepath.Join("testdata", "2FCA0A85.pub"))
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(f)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -61,7 +61,7 @@ func TestLatestVersion_basic(t *testing.T) {
 	lv := &LatestVersion{
 		Product:          product.Terraform,
 		ArmoredPublicKey: getTestPubKey(t),
-		apiBaseURL:       testutil.NewTestServer(t, mockApiRoot).URL,
+		CustomURL:        testutil.NewTestServer(t, mockApiRoot).URL,
 	}
 	lv.SetLogger(testutil.TestLogger())
 
@@ -95,7 +95,7 @@ func TestLatestVersion_prereleases(t *testing.T) {
 		Product:            product.Terraform,
 		IncludePrereleases: true,
 		ArmoredPublicKey:   getTestPubKey(t),
-		apiBaseURL:         testutil.NewTestServer(t, mockApiRoot).URL,
+		CustomURL:          testutil.NewTestServer(t, mockApiRoot).URL,
 	}
 	lv.SetLogger(testutil.TestLogger())
 
@@ -167,7 +167,7 @@ func BenchmarkExactVersion(b *testing.B) {
 			Product:          product.Terraform,
 			Version:          version.Must(version.NewVersion("0.14.11")),
 			ArmoredPublicKey: getTestPubKey(b),
-			apiBaseURL:       testutil.NewTestServer(b, mockApiRoot).URL,
+			CustomURL:        testutil.NewTestServer(b, mockApiRoot).URL,
 			InstallDir:       installDir,
 		}
 		ev.SetLogger(testutil.TestLogger())

@@ -39,6 +39,7 @@ type LatestVersion struct {
 	// CustomURL is an optional field that specifies a custom URL to download the product from.
 	// This can be useful in environments where access to the default HashiCorp releases site (releases.hashicorp.com) is blocked.
 	// If CustomURL is set, the product will be downloaded from this URL instead of the default site.
+	// Note: The directory structure of the custom URL must match the HashiCorp releases site (including the index.json files).
 	CustomURL     string
 	logger        *log.Logger
 	pathsToRemove []string

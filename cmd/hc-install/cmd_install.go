@@ -43,6 +43,8 @@ Usage: hc-install install [options] -version <version> <product>
               Defaults to current working directory.
     -log-file Path to file where logs will be written. /dev/stdout
               or /dev/stderr can be used to log to STDOUT/STDERR.
+	-custom-url  Custom URL to download the product from.
+			  URL Endpoint must have same structure as HashiCorp releases.
 `
 	return strings.TrimSpace(helpText)
 }
@@ -52,6 +54,7 @@ func (c *InstallCommand) Run(args []string) int {
 		version        string
 		installDirPath string
 		logFilePath    string
+		customURL      string
 	)
 
 	fs := flag.NewFlagSet("install", flag.ExitOnError)
@@ -59,6 +62,7 @@ func (c *InstallCommand) Run(args []string) int {
 	fs.StringVar(&version, "version", "", "version of product to install")
 	fs.StringVar(&installDirPath, "path", "", "path to directory where production will be installed")
 	fs.StringVar(&logFilePath, "log-file", "", "path to file where logs will be written")
+	fs.StringVar(&customURL, "custom-url", "", "custom URL to download the product from")
 
 	if err := fs.Parse(args); err != nil {
 		return 1
@@ -99,7 +103,7 @@ Option flags must be provided before the positional argument`)
 		logger = log.New(f, "[DEBUG] ", log.LstdFlags|log.Lshortfile|log.Lmicroseconds)
 	}
 
-	installedPath, err := c.install(product, version, installDirPath, logger)
+	installedPath, err := c.install(product, version, installDirPath, customURL, logger)
 	if err != nil {
 		msg := fmt.Sprintf("failed to install %s@%s: %v", product, version, err)
 		c.Ui.Error(msg)
@@ -110,7 +114,7 @@ Option flags must be provided before the positional argument`)
 	return 0
 }
 
-func (c *InstallCommand) install(project, tag, installDirPath string, logger *log.Logger) (string, error) {
+func (c *InstallCommand) install(project, tag, installDirPath, customURL string, logger *log.Logger) (string, error) {
 	msg := fmt.Sprintf("hc-install: will install %s@%s", project, tag)
 	c.Ui.Info(msg)
 
@@ -133,6 +137,7 @@ func (c *InstallCommand) install(project, tag, installDirPath string, logger *lo
 		},
 		Version:    v,
 		InstallDir: installDirPath,
+		CustomURL:  customURL,
 	}
 
 	ctx := context.Background()

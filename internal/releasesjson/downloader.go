@@ -63,8 +63,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 	archiveURL := pb.URL
 	if d.BaseURL != "" {
 		// If custom URL is set, use that instead of the one from the JSON.
-		// If using a custom URL, it may be because access to the HashiCorp Releases API is restricted.
-		// Also ensure that absolute download links from mocked responses are still pointing to the mock server if one is set.
+		// Also ensures that absolute download links from mocked responses are still pointing to the mock server if one is set.
 		baseURL, err := url.Parse(d.BaseURL)
 		if err != nil {
 			return "", err

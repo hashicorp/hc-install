@@ -219,11 +219,13 @@ func contentTypeIsZip(contentType string) bool {
 	return false
 }
 
-// Enterprise products have a few additional license files
-// that need to be extracted to a separate directory
+// Product archives may have a few license files
+// which may be extracted to a separate directory
+// and may need to be tracked for later cleanup.
 var licenseFiles = []string{
 	"EULA.txt",
 	"TermsOfEvaluation.txt",
+	"LICENSE.txt",
 }
 
 func isLicenseFile(filename string) bool {

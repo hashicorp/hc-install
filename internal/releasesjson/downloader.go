@@ -181,6 +181,11 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 
 		d.Logger.Printf("unpacking %s to %s", f.Name, dstDir)
 		dstPath := filepath.Join(dstDir, f.Name)
+
+		if isLicenseFile(f.Name) {
+			up.PathsToRemove = append(up.PathsToRemove, dstPath)
+		}
+
 		dstFile, err := os.Create(dstPath)
 		if err != nil {
 			return up, err

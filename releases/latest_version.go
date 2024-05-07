@@ -36,11 +36,10 @@ type LatestVersion struct {
 	// instead of built-in pubkey to verify signature of downloaded checksums
 	ArmoredPublicKey string
 
-	// CustomURL is an optional field that specifies a custom URL to download the product from.
-	// This can be useful in environments where access to the default HashiCorp releases site (releases.hashicorp.com) is blocked.
-	// If CustomURL is set, the product will be downloaded from this URL instead of the default site.
+	// ApiBaseURL is an optional field that specifies a custom URL to download the product from.
+	// If ApiBaseURL is set, the product will be downloaded from this base URL instead of the default site.
 	// Note: The directory structure of the custom URL must match the HashiCorp releases site (including the index.json files).
-	CustomURL     string
+	ApiBaseURL    string
 	logger        *log.Logger
 	pathsToRemove []string
 }
@@ -102,8 +101,8 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 	lv.log().Printf("will install into dir at %s", dstDir)
 
 	rels := rjson.NewReleases()
-	if lv.CustomURL != "" {
-		rels.BaseURL = lv.CustomURL
+	if lv.ApiBaseURL != "" {
+		rels.BaseURL = lv.ApiBaseURL
 	}
 	rels.SetLogger(lv.log())
 	versions, err := rels.ListProductVersions(ctx, lv.Product.Name)
@@ -129,8 +128,8 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 	if lv.ArmoredPublicKey != "" {
 		d.ArmoredPublicKey = lv.ArmoredPublicKey
 	}
-	if lv.CustomURL != "" {
-		d.BaseURL = lv.CustomURL
+	if lv.ApiBaseURL != "" {
+		d.BaseURL = lv.ApiBaseURL
 	}
 	licenseDir := ""
 	if lv.Enterprise != nil {

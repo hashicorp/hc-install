@@ -63,7 +63,8 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 	archiveURL := pb.URL
 	if d.BaseURL != "" {
 		// If custom URL is set, use that instead of the one from the JSON.
-		// Also ensures that absolute download links from mocked responses are still pointing to the mock server if one is set.
+		// Also ensures that absolute download links from mocked responses
+		// are still pointing to the mock server if one is set.
 		baseURL, err := url.Parse(d.BaseURL)
 		if err != nil {
 			return "", err

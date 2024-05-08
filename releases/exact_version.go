@@ -36,7 +36,10 @@ type ExactVersion struct {
 	// instead of built-in pubkey to verify signature of downloaded checksums
 	ArmoredPublicKey string
 
-	apiBaseURL    string
+	// ApiBaseURL is an optional field that specifies a custom URL to download the product from.
+	// If ApiBaseURL is set, the product will be downloaded from this base URL instead of the default site.
+	// Note: The directory structure of the custom URL must match the HashiCorp releases site (including the index.json files).
+	ApiBaseURL    string
 	logger        *log.Logger
 	pathsToRemove []string
 }
@@ -102,8 +105,8 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 	ev.log().Printf("will install into dir at %s", dstDir)
 
 	rels := rjson.NewReleases()
-	if ev.apiBaseURL != "" {
-		rels.BaseURL = ev.apiBaseURL
+	if ev.ApiBaseURL != "" {
+		rels.BaseURL = ev.ApiBaseURL
 	}
 	rels.SetLogger(ev.log())
 	installVersion := ev.Version
@@ -124,8 +127,8 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 	if ev.ArmoredPublicKey != "" {
 		d.ArmoredPublicKey = ev.ArmoredPublicKey
 	}
-	if ev.apiBaseURL != "" {
-		d.BaseURL = ev.apiBaseURL
+	if ev.ApiBaseURL != "" {
+		d.BaseURL = ev.ApiBaseURL
 	}
 
 	licenseDir := ""

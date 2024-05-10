@@ -125,7 +125,7 @@ func TestLatestVersion_prereleases(t *testing.T) {
 func TestExactVersion(t *testing.T) {
 	testutil.EndToEndTest(t)
 
-	versionToInstall := version.Must(version.NewVersion("1.1.0"))
+	versionToInstall := version.Must(version.NewVersion("1.8.2"))
 	ev := &ExactVersion{
 		Product: product.Terraform,
 		Version: versionToInstall,
@@ -139,7 +139,14 @@ func TestExactVersion(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Cleanup(func() { ev.Remove(ctx) })
+	licensePath := filepath.Join(filepath.Dir(execPath), "LICENSE.txt")
+	t.Cleanup(func() {
+		ev.Remove(ctx)
+		// check if license was deleted
+		if _, err := os.Stat(licensePath); !os.IsNotExist(err) {
+			t.Fatalf("license file not deleted at %q: %s", licensePath, err)
+		}
+	})
 
 	t.Logf("exec path of installed: %s", execPath)
 
@@ -151,6 +158,11 @@ func TestExactVersion(t *testing.T) {
 	if !versionToInstall.Equal(v) {
 		t.Fatalf("versions don't match (expected: %s, installed: %s)",
 			versionToInstall, v)
+	}
+
+	// check if license was copied
+	if _, err := os.Stat(licensePath); err != nil {
+		t.Fatalf("expected license file not found at %q: %s", licensePath, err)
 	}
 }
 

@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
       - name: Set Product version
         id: set-product-version
-        uses: hashicorp/actions-set-product-version@e2c49d61aff17b1280ddfe7bb031331d02ca0140 # v1.0.1
+        uses: hashicorp/actions-set-product-version@d9b52fb778068099ca4c5e28e1ca0fee2544e114 # v2
 
   generate-metadata-file:
     needs: set-product-version
@@ -82,7 +82,7 @@ jobs:
     name: Go ${{ needs.get-go-version.outputs.go-version }} ${{ matrix.goos }} ${{ matrix.goarch }} build
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
-      - uses: hashicorp/actions-go-build@e20c6be7bf010e40e930dab20e6da63176725ec1 # v0.1.9
+      - uses: hashicorp/actions-go-build@37358f6098ef21b09542d84a9814ebb843aa4e3e # v1
         env:
           BASE_VERSION: ${{ needs.set-product-version.outputs.product-base-version }}
           PRERELEASE_VERSION: ${{ needs.set-product-version.outputs.product-prerelease-version}}

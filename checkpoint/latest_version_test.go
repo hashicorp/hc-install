@@ -6,6 +6,8 @@ package checkpoint
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/hashicorp/go-version"
@@ -34,7 +36,15 @@ func TestLatestVersion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { lv.Remove(ctx) })
+
+	licensePath := filepath.Join(filepath.Dir(execPath), "LICENSE.txt")
+	t.Cleanup(func() {
+		lv.Remove(ctx)
+		// check if license was deleted
+		if _, err := os.Stat(licensePath); !os.IsNotExist(err) {
+			t.Fatalf("license file not deleted at %q: %s", licensePath, err)
+		}
+	})
 
 	v, err := product.Terraform.GetVersion(ctx, execPath)
 	if err != nil {
@@ -48,6 +58,11 @@ func TestLatestVersion(t *testing.T) {
 	if !latestConstraint.Check(v.Core()) {
 		t.Fatalf("versions don't match (expected: %s, installed: %s)",
 			latestConstraint, v)
+	}
+
+	// check if license was copied
+	if _, err := os.Stat(licensePath); err != nil {
+		t.Fatalf("expected license file not found at %q: %s", licensePath, err)
 	}
 }
 

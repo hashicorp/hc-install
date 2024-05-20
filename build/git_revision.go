@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/go-git/go-git/v5"
@@ -169,9 +170,45 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 		gr.pathsToRemove = append(gr.pathsToRemove, installDir)
 	}
 
+	// copy license file on best effort basis
+	dstLicensePath := filepath.Join(installDir, "LICENSE.txt")
+	srcLicensePath := filepath.Join(repoDir, "LICENSE.txt")
+	altSrcLicensePath := filepath.Join(repoDir, "LICENSE")
+	if _, err := os.Stat(srcLicensePath); err == nil {
+		err = gr.copyLicenseFile(srcLicensePath, dstLicensePath)
+		if err != nil {
+			return "", err
+		}
+	} else if _, err := os.Stat(altSrcLicensePath); err == nil {
+		err = gr.copyLicenseFile(altSrcLicensePath, dstLicensePath)
+		if err != nil {
+			return "", err
+		}
+	}
+
 	gr.log().Printf("building %s (timeout: %s)", gr.Product.Name, buildTimeout)
 	defer gr.log().Printf("building of %s finished", gr.Product.Name)
 	return bi.Build.Build(buildCtx, repoDir, installDir, gr.Product.BinaryName())
+}
+
+func (gr *GitRevision) copyLicenseFile(srcPath, dstPath string) error {
+	src, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+	dst, err := os.Create(dstPath)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+	n, err := io.Copy(dst, src)
+	if err != nil {
+		return err
+	}
+	gr.log().Printf("license file copied from %q to %q (%d bytes)",
+		srcPath, dstPath, n)
+	return nil
 }
 
 func (gr *GitRevision) Remove(ctx context.Context) error {

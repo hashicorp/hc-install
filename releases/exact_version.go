@@ -135,9 +135,9 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 	if ev.Enterprise != nil {
 		licenseDir = ev.Enterprise.LicenseDir
 	}
-	zipFilePath, err := d.DownloadAndUnpack(ctx, pv, dstDir, licenseDir)
-	if zipFilePath != "" {
-		ev.pathsToRemove = append(ev.pathsToRemove, zipFilePath)
+	up, err := d.DownloadAndUnpack(ctx, pv, dstDir, licenseDir)
+	if up != nil {
+		ev.pathsToRemove = append(ev.pathsToRemove, up.PathsToRemove...)
 	}
 	if err != nil {
 		return "", err

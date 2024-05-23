@@ -177,10 +177,13 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 	gr.log().Printf("install dir is %q", installDir)
 
 	// copy license file on best effort basis
+	// default to installDir if LicenseDir is not set
 	licenseDir := gr.LicenseDir
-	dstDir := filepath.Join(installDir, licenseDir)
-	gr.log().Printf("Attempting to copy license file to %q", dstDir)
-	if err := gr.copyLicenseIfExists(repoDir, dstDir); err != nil {
+	if licenseDir == "" {
+		licenseDir = installDir
+	}
+	gr.log().Printf("Attempting to copy license file to %q", licenseDir)
+	if err := gr.copyLicenseIfExists(repoDir, licenseDir); err != nil {
 		return "", err
 	}
 

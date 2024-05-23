@@ -142,11 +142,10 @@ func ExampleInstaller_enterpriseVersion() {
 
 	execPath, err := i.Install(ctx, []src.Installable{
 		&releases.ExactVersion{
-			Product: product.Vault,
-			Version: v1_9,
-			Enterprise: &releases.EnterpriseOptions{ // specify that we want the enterprise version
-				LicenseDir: licenseDir, // where license files should be placed (required for enterprise versions)
-			},
+			Product:    product.Vault,
+			Version:    v1_9,
+			LicenseDir: licenseDir,
+			Enterprise: &releases.EnterpriseOptions{}, // specify that we want the enterprise version
 		},
 	})
 	if err != nil {

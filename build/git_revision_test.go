@@ -25,7 +25,10 @@ var (
 func TestGitRevision_terraform(t *testing.T) {
 	testutil.EndToEndTest(t)
 
-	gr := &GitRevision{Product: product.Terraform}
+	gr := &GitRevision{
+		Product:    product.Terraform,
+		LicenseDir: "licenses",
+	}
 	gr.SetLogger(testutil.TestLogger())
 
 	ctx := context.Background()
@@ -35,7 +38,7 @@ func TestGitRevision_terraform(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	licensePath := filepath.Join(filepath.Dir(execPath), "LICENSE.txt")
+	licensePath := filepath.Join(filepath.Dir(execPath), gr.LicenseDir, "LICENSE.txt")
 	t.Cleanup(func() {
 		gr.Remove(ctx)
 		// check if license was deleted

@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/hc-install"
+	install "github.com/hashicorp/hc-install"
 	"github.com/hashicorp/hc-install/fs"
 	"github.com/hashicorp/hc-install/internal/testutil"
 	"github.com/hashicorp/hc-install/product"
@@ -119,9 +119,8 @@ func TestInstaller_Install_enterprise(t *testing.T) {
 			Product:    product.Vault,
 			Version:    version.Must(version.NewVersion("1.9.8")),
 			InstallDir: tmpBinaryDir,
-			Enterprise: &releases.EnterpriseOptions{
-				LicenseDir: tmpLicenseDir,
-			},
+			LicenseDir: tmpLicenseDir,
+			Enterprise: &releases.EnterpriseOptions{},
 		},
 	})
 	if err != nil {

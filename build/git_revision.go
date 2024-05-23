@@ -30,8 +30,13 @@ var (
 // GitRevision installs a particular git revision by cloning
 // the repository and building it per product BuildInstructions
 type GitRevision struct {
-	Product      product.Product
-	InstallDir   string
+	Product    product.Product
+	InstallDir string
+
+	// LicenseDir represents directory path where to install license files (required for enterprise versions, optional for OSS)
+	// If empty, license files will placed in the same directory as the binary.
+	LicenseDir string
+
 	Ref          string
 	CloneTimeout time.Duration
 	BuildTimeout time.Duration
@@ -171,24 +176,30 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 	}
 
 	// copy license file on best effort basis
-	dstLicensePath := filepath.Join(installDir, "LICENSE.txt")
-	srcLicensePath := filepath.Join(repoDir, "LICENSE.txt")
-	altSrcLicensePath := filepath.Join(repoDir, "LICENSE")
-	if _, err := os.Stat(srcLicensePath); err == nil {
-		err = gr.copyLicenseFile(srcLicensePath, dstLicensePath)
-		if err != nil {
-			return "", err
-		}
-	} else if _, err := os.Stat(altSrcLicensePath); err == nil {
-		err = gr.copyLicenseFile(altSrcLicensePath, dstLicensePath)
-		if err != nil {
-			return "", err
-		}
+	licenseDir := gr.LicenseDir
+	dstLicensePath := filepath.Join(installDir, licenseDir, "LICENSE.txt")
+	if err := gr.copyLicenseIfExists(repoDir, dstLicensePath); err != nil {
+		return "", err
 	}
 
 	gr.log().Printf("building %s (timeout: %s)", gr.Product.Name, buildTimeout)
 	defer gr.log().Printf("building of %s finished", gr.Product.Name)
 	return bi.Build.Build(buildCtx, repoDir, installDir, gr.Product.BinaryName())
+}
+
+func (gr *GitRevision) copyLicenseIfExists(repoDir string, dstPath string) error {
+	licenseFiles := []string{"LICENSE.txt", "LICENSE"}
+
+	for _, file := range licenseFiles {
+		srcPath := filepath.Join(repoDir, file)
+		if _, err := os.Stat(srcPath); err == nil {
+			if err := gr.copyLicenseFile(srcPath, dstPath); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (gr *GitRevision) copyLicenseFile(srcPath, dstPath string) error {

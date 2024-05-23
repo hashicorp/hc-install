@@ -178,9 +178,9 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 
 	// copy license file on best effort basis
 	licenseDir := gr.LicenseDir
-	dstLicensePath := filepath.Join(installDir, licenseDir, "LICENSE.txt")
-	gr.log().Printf("Attempting to copy license file to %q", dstLicensePath)
-	if err := gr.copyLicenseIfExists(repoDir, dstLicensePath); err != nil {
+	dstDir := filepath.Join(installDir, licenseDir)
+	gr.log().Printf("Attempting to copy license file to %q", dstDir)
+	if err := gr.copyLicenseIfExists(repoDir, dstDir); err != nil {
 		return "", err
 	}
 
@@ -189,7 +189,7 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 	return bi.Build.Build(buildCtx, repoDir, installDir, gr.Product.BinaryName())
 }
 
-func (gr *GitRevision) copyLicenseIfExists(repoDir string, dstPath string) error {
+func (gr *GitRevision) copyLicenseIfExists(repoDir string, dstDir string) error {
 	licenseFiles := []string{"LICENSE.txt", "LICENSE"}
 
 	for _, file := range licenseFiles {
@@ -197,6 +197,7 @@ func (gr *GitRevision) copyLicenseIfExists(repoDir string, dstPath string) error
 		gr.log().Printf("Checking if license file exists at %q", srcPath)
 		if _, err := os.Stat(srcPath); err == nil {
 			gr.log().Printf("Found license file at %q", srcPath)
+			dstPath := filepath.Join(dstDir, file)
 			if err := gr.copyLicenseFile(srcPath, dstPath); err != nil {
 				return err
 			}

@@ -174,10 +174,12 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 		installDir = tmpDir
 		gr.pathsToRemove = append(gr.pathsToRemove, installDir)
 	}
+	gr.log().Printf("install dir is %q", installDir)
 
 	// copy license file on best effort basis
 	licenseDir := gr.LicenseDir
 	dstLicensePath := filepath.Join(installDir, licenseDir, "LICENSE.txt")
+	gr.log().Printf("Attempting to copy license file to %q", dstLicensePath)
 	if err := gr.copyLicenseIfExists(repoDir, dstLicensePath); err != nil {
 		return "", err
 	}
@@ -192,7 +194,9 @@ func (gr *GitRevision) copyLicenseIfExists(repoDir string, dstPath string) error
 
 	for _, file := range licenseFiles {
 		srcPath := filepath.Join(repoDir, file)
+		gr.log().Printf("Checking if license file exists at %q", srcPath)
 		if _, err := os.Stat(srcPath); err == nil {
+			gr.log().Printf("Found license file at %q", srcPath)
 			if err := gr.copyLicenseFile(srcPath, dstPath); err != nil {
 				return err
 			}
@@ -203,18 +207,22 @@ func (gr *GitRevision) copyLicenseIfExists(repoDir string, dstPath string) error
 }
 
 func (gr *GitRevision) copyLicenseFile(srcPath, dstPath string) error {
+	gr.log().Printf("Copying license file from %q to %q", srcPath, dstPath)
 	src, err := os.Open(srcPath)
 	if err != nil {
+		gr.log().Printf("Failed to open license file at %q: %s", srcPath, err)
 		return err
 	}
 	defer src.Close()
 	dst, err := os.Create(dstPath)
 	if err != nil {
+		gr.log().Printf("Failed to create license file at %q: %s", dstPath, err)
 		return err
 	}
 	defer dst.Close()
 	n, err := io.Copy(dst, src)
 	if err != nil {
+		gr.log().Printf("Failed to copy license file from %q to %q: %s", srcPath, dstPath, err)
 		return err
 	}
 	gr.log().Printf("license file copied from %q to %q (%d bytes)",
@@ -227,6 +235,7 @@ func (gr *GitRevision) Remove(ctx context.Context) error {
 		for _, path := range gr.pathsToRemove {
 			err := os.RemoveAll(path)
 			if err != nil {
+				gr.log().Printf("failed to remove %q: %s", path, err)
 				return err
 			}
 		}

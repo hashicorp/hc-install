@@ -38,7 +38,7 @@ func TestGitRevision_terraform(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	licensePath := filepath.Join(filepath.Dir(execPath), gr.LicenseDir, "LICENSE.txt")
+	licensePath := filepath.Join(filepath.Dir(execPath), gr.LicenseDir, "LICENSE")
 	t.Cleanup(func() {
 		gr.Remove(ctx)
 		// check if license was deleted

@@ -139,8 +139,7 @@ func TestExactVersion(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// LicenseDir not passed, so license is placed in the same directory as the binary.
-	licensePath := filepath.Join(filepath.Dir(execPath), "LICENSE")
+	licensePath := filepath.Join(filepath.Dir(execPath), "LICENSE.txt")
 	t.Cleanup(func() {
 		ev.Remove(ctx)
 		// check if license was deleted

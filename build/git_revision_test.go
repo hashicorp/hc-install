@@ -28,7 +28,6 @@ func TestGitRevision_terraform(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(tempDir) // clean up
 
 	gr := &GitRevision{
 		Product:    product.Terraform,
@@ -48,7 +47,7 @@ func TestGitRevision_terraform(t *testing.T) {
 		// check if license was deleted
 		files, err := os.ReadDir(tempDir)
 		if err != nil {
-			t.Fatal(err)
+			t.Fatal("failed to read license directory in cleanup", err)
 		}
 		if len(files) != 0 {
 			t.Fatalf("license file not deleted, tempDir %q is not empty", tempDir)
@@ -72,7 +71,7 @@ func TestGitRevision_terraform(t *testing.T) {
 	// check if license was copied
 	files, err := os.ReadDir(tempDir)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal("failed to read license directory", err)
 	}
 	if len(files) == 0 {
 		t.Fatalf("expected license file not found, tempDir %q is empty", tempDir)
@@ -222,5 +221,57 @@ func TestGitRevisionValidate(t *testing.T) {
 				t.Fatalf("expected error: %s, got error: %s", testCase.expectedErr, err)
 			}
 		})
+	}
+}
+
+func TestGitRevision_Remove(t *testing.T) {
+	// Create temporary directories
+	parentDir, err := os.MkdirTemp("", "parent")
+	if err != nil {
+		t.Fatal(err)
+	}
+	childDir, err := os.MkdirTemp(parentDir, "child")
+	if err != nil {
+		t.Fatal(err)
+	}
+	licensesDir, err := os.MkdirTemp("", "licenses")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Create a temporary file in the directory
+	file, err := os.CreateTemp(licensesDir, "file")
+	if err != nil {
+		t.Fatal(err)
+	}
+	file.Close()
+
+	// Create a GitRevision instance
+	gr := &GitRevision{
+		Product:       product.Terraform,
+		pathsToRemove: []string{parentDir, childDir, file.Name()},
+	}
+
+	// Remove paths
+	err = gr.Remove(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check if the directories have been removed
+	_, err = os.Stat(parentDir)
+	if !os.IsNotExist(err) {
+		t.Fatalf("parent directory was not removed: %s", err)
+	}
+	_, err = os.Stat(childDir)
+	if !os.IsNotExist(err) {
+		t.Fatalf("child directory was not removed: %s", err)
+	}
+	_, err = os.Stat(file.Name())
+	if !os.IsNotExist(err) {
+		t.Fatalf("file was not removed: %s", err)
+	}
+	_, err = os.Stat(licensesDir)
+	if os.IsNotExist(err) {
+		t.Fatalf("other directory was removed: %s", err)
 	}
 }

@@ -242,12 +242,15 @@ func (gr *GitRevision) copyLicenseFile(srcPath, dstPath string) error {
 	}
 	gr.log().Printf("license file copied from %q to %q (%d bytes)",
 		srcPath, dstPath, n)
+	// Add the license file to the list of paths to remove after being successfully copied
+	gr.pathsToRemove = append(gr.pathsToRemove, dstPath)
 	return nil
 }
 
 func (gr *GitRevision) Remove(ctx context.Context) error {
 	if gr.pathsToRemove != nil {
 		for _, path := range gr.pathsToRemove {
+			gr.log().Printf("removing %q", path)
 			err := os.RemoveAll(path)
 			if err != nil {
 				gr.log().Printf("failed to remove %q: %s", path, err)

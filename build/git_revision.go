@@ -197,12 +197,11 @@ func (gr *GitRevision) copyLicenseIfExists(repoDir string, dstDir string) error 
 
 	for _, file := range licenseFiles {
 		srcPath := filepath.Join(repoDir, file)
-		gr.log().Printf("Checking if license file exists at %q", srcPath)
 		if _, err := os.Stat(srcPath); err == nil {
 			gr.log().Printf("Found license file at %q", srcPath)
 			dstPath := filepath.Join(dstDir, file)
 			if err := gr.copyLicenseFile(srcPath, dstPath); err != nil {
-				return err
+				return fmt.Errorf("failed to copy license file from %q to %q: %w", srcPath, dstPath, err)
 			}
 		}
 	}
@@ -214,8 +213,7 @@ func (gr *GitRevision) copyLicenseFile(srcPath, dstPath string) error {
 	gr.log().Printf("Copying license file from %q to %q", srcPath, dstPath)
 	src, err := os.Open(srcPath)
 	if err != nil {
-		gr.log().Printf("Failed to open license file at %q: %s", srcPath, err)
-		return err
+		return fmt.Errorf("failed to open license file at %q: %w", srcPath, err)
 	}
 	defer src.Close()
 
@@ -224,21 +222,18 @@ func (gr *GitRevision) copyLicenseFile(srcPath, dstPath string) error {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		gr.log().Printf("Directory %q does not exist, creating it", dir)
 		if err := os.MkdirAll(dir, 0755); err != nil {
-			gr.log().Printf("Failed to create directory %q: %s", dir, err)
-			return err
+			return fmt.Errorf("failed to create directory %q: %w", dir, err)
 		}
 	}
 
 	dst, err := os.Create(dstPath)
 	if err != nil {
-		gr.log().Printf("Failed to create license file at %q: %s", dstPath, err)
-		return err
+		return fmt.Errorf("failed to create license file at %q: %w", dstPath, err)
 	}
 	defer dst.Close()
 	n, err := io.Copy(dst, src)
 	if err != nil {
-		gr.log().Printf("Failed to copy license file from %q to %q: %s", srcPath, dstPath, err)
-		return err
+		return fmt.Errorf("failed to copy license file from %q to %q: %w", srcPath, dstPath, err)
 	}
 	gr.log().Printf("license file copied from %q to %q (%d bytes)",
 		srcPath, dstPath, n)
@@ -250,11 +245,9 @@ func (gr *GitRevision) copyLicenseFile(srcPath, dstPath string) error {
 func (gr *GitRevision) Remove(ctx context.Context) error {
 	if gr.pathsToRemove != nil {
 		for _, path := range gr.pathsToRemove {
-			gr.log().Printf("removing %q", path)
 			err := os.RemoveAll(path)
 			if err != nil {
-				gr.log().Printf("failed to remove %q: %s", path, err)
-				return err
+				return fmt.Errorf("failed to remove %q: %w", path, err)
 			}
 		}
 	}

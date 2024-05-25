@@ -99,14 +99,14 @@ Option flags must be provided before the positional argument`)
 		logger = log.New(f, "[DEBUG] ", log.LstdFlags|log.Lshortfile|log.Lmicroseconds)
 	}
 
-	installedPath, err := c.install(product, version, installDirPath, logger)
+	installedDetails, err := c.install(product, version, installDirPath, logger)
 	if err != nil {
 		msg := fmt.Sprintf("failed to install %s@%s: %v", product, version, err)
 		c.Ui.Error(msg)
 		return 1
 	}
 
-	c.Ui.Info(fmt.Sprintf("installed %s@%s to %s", product, version, installedPath))
+	c.Ui.Info(fmt.Sprintf("installed %s@%s to %s", product, installedDetails.Version, installedDetails.ExecutablePath))
 	return 0
 }
 

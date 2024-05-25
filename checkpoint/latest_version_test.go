@@ -32,10 +32,12 @@ func TestLatestVersion(t *testing.T) {
 
 	ctx := context.Background()
 
-	execPath, err := lv.Install(ctx)
+	installDetails, err := lv.Install(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	execPath := installDetails.ExecutablePath
+	v := installDetails.Version
 
 	licensePath := filepath.Join(filepath.Dir(execPath), "LICENSE.txt")
 	t.Cleanup(func() {
@@ -45,11 +47,6 @@ func TestLatestVersion(t *testing.T) {
 			t.Fatalf("license file not deleted at %q: %s", licensePath, err)
 		}
 	})
-
-	v, err := product.Terraform.GetVersion(ctx, execPath)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	latestConstraint, err := version.NewConstraint(">= 1.0")
 	if err != nil {

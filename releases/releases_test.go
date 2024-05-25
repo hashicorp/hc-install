@@ -35,16 +35,12 @@ func TestLatestVersion(t *testing.T) {
 
 	ctx := context.Background()
 
-	execPath, err := lv.Install(ctx)
+	installDetails, err := lv.Install(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	v := installDetails.Version
 	t.Cleanup(func() { lv.Remove(ctx) })
-
-	v, err := product.Terraform.GetVersion(ctx, execPath)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	latestConstraint, err := version.NewConstraint(">= 1.0")
 	if err != nil {
@@ -67,16 +63,12 @@ func TestLatestVersion_basic(t *testing.T) {
 
 	ctx := context.Background()
 
-	execPath, err := lv.Install(ctx)
+	installDetails, err := lv.Install(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	v := installDetails.Version
 	t.Cleanup(func() { lv.Remove(ctx) })
-
-	v, err := product.Terraform.GetVersion(ctx, execPath)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	expectedVersion, err := version.NewVersion("0.14.11")
 	if err != nil {
@@ -101,16 +93,13 @@ func TestLatestVersion_prereleases(t *testing.T) {
 
 	ctx := context.Background()
 
-	execPath, err := lv.Install(ctx)
+	installDetails, err := lv.Install(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { lv.Remove(ctx) })
+	v := installDetails.Version
 
-	v, err := product.Terraform.GetVersion(ctx, execPath)
-	if err != nil {
-		t.Fatal(err)
-	}
+	t.Cleanup(func() { lv.Remove(ctx) })
 
 	expectedVersion, err := version.NewVersion("0.15.0-rc2")
 	if err != nil {
@@ -134,10 +123,12 @@ func TestExactVersion(t *testing.T) {
 
 	ctx := context.Background()
 
-	execPath, err := ev.Install(ctx)
+	installDetails, err := ev.Install(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	execPath := installDetails.ExecutablePath
 
 	licensePath := filepath.Join(filepath.Dir(execPath), "LICENSE.txt")
 	t.Cleanup(func() {

@@ -17,6 +17,7 @@ import (
 	isrc "github.com/hashicorp/hc-install/internal/src"
 	"github.com/hashicorp/hc-install/internal/validators"
 	"github.com/hashicorp/hc-install/product"
+	"github.com/hashicorp/hc-install/src"
 )
 
 // ExactVersion installs the given Version of product
@@ -79,7 +80,7 @@ func (ev *ExactVersion) Validate() error {
 	return nil
 }
 
-func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
+func (ev *ExactVersion) Install(ctx context.Context) (*src.Details, error) {
 	timeout := defaultInstallTimeout
 	if ev.Timeout > 0 {
 		timeout = ev.Timeout
@@ -97,7 +98,7 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		dirName := fmt.Sprintf("%s_*", ev.Product.Name)
 		dstDir, err = os.MkdirTemp("", dirName)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		ev.pathsToRemove = append(ev.pathsToRemove, dstDir)
 		ev.log().Printf("created new temp dir at %s", dstDir)
@@ -115,7 +116,7 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 	}
 	pv, err := rels.GetProductVersion(ctx, ev.Product.Name, installVersion)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	d := &rjson.Downloader{
@@ -140,7 +141,7 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		ev.pathsToRemove = append(ev.pathsToRemove, up.PathsToRemove...)
 	}
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	execPath := filepath.Join(dstDir, ev.Product.BinaryName())
@@ -150,10 +151,15 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 	ev.log().Printf("changing perms of %s", execPath)
 	err = os.Chmod(execPath, 0o700)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return execPath, nil
+	result := &src.Details{
+		ExecutablePath: execPath,
+		Version:        ev.Version,
+	}
+
+	return result, nil
 }
 
 func (ev *ExactVersion) Remove(ctx context.Context) error {

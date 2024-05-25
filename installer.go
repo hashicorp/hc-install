@@ -33,7 +33,7 @@ func (i *Installer) SetLogger(logger *log.Logger) {
 	i.logger = logger
 }
 
-func (i *Installer) Ensure(ctx context.Context, sources []src.Source) (string, error) {
+func (i *Installer) Ensure(ctx context.Context, sources []src.Source) (*src.Details, error) {
 	var errs *multierror.Error
 
 	for _, source := range sources {
@@ -50,7 +50,7 @@ func (i *Installer) Ensure(ctx context.Context, sources []src.Source) (string, e
 	}
 
 	if errs.ErrorOrNil() != nil {
-		return "", errs
+		return nil, errs
 	}
 
 	i.removableSources = make([]src.Removable, 0)
@@ -62,27 +62,27 @@ func (i *Installer) Ensure(ctx context.Context, sources []src.Source) (string, e
 
 		switch s := source.(type) {
 		case src.Findable:
-			execPath, err := s.Find(ctx)
+			details, err := s.Find(ctx)
 			if err != nil {
 				if errors.IsErrorSkippable(err) {
 					errs = multierror.Append(errs, err)
 					continue
 				}
-				return "", err
+				return nil, err
 			}
 
-			return execPath, nil
+			return details, nil
 		case src.Installable:
-			execPath, err := s.Install(ctx)
+			details, err := s.Install(ctx)
 			if err != nil {
 				if errors.IsErrorSkippable(err) {
 					errs = multierror.Append(errs, err)
 					continue
 				}
-				return "", err
+				return nil, err
 			}
 
-			return execPath, nil
+			return details, nil
 		case src.Buildable:
 			execPath, err := s.Build(ctx)
 			if err != nil {
@@ -90,20 +90,23 @@ func (i *Installer) Ensure(ctx context.Context, sources []src.Source) (string, e
 					errs = multierror.Append(errs, err)
 					continue
 				}
-				return "", err
+				return nil, err
 			}
 
-			return execPath, nil
+			return &src.Details{
+				ExecutablePath: execPath,
+				Version:        nil,
+			}, nil
 		default:
-			return "", fmt.Errorf("unknown source: %T", s)
+			return nil, fmt.Errorf("unknown source: %T", s)
 		}
 	}
 
-	return "", fmt.Errorf("unable to find, install, or build from %d sources: %s",
+	return nil, fmt.Errorf("unable to find, install, or build from %d sources: %s",
 		len(sources), errs.ErrorOrNil())
 }
 
-func (i *Installer) Install(ctx context.Context, sources []src.Installable) (string, error) {
+func (i *Installer) Install(ctx context.Context, sources []src.Installable) (*src.Details, error) {
 	var errs *multierror.Error
 
 	i.removableSources = make([]src.Removable, 0)
@@ -125,19 +128,23 @@ func (i *Installer) Install(ctx context.Context, sources []src.Installable) (str
 			i.removableSources = append(i.removableSources, s)
 		}
 
-		execPath, err := source.Install(ctx)
+		installDetails, err := source.Install(ctx)
 		if err != nil {
 			if errors.IsErrorSkippable(err) {
 				errs = multierror.Append(errs, err)
 				continue
 			}
-			return "", err
+			return nil, err
 		}
 
-		return execPath, nil
+		result := &src.Details{
+			Version:        installDetails.Version,
+			ExecutablePath: installDetails.ExecutablePath,
+		}
+		return result, nil
 	}
 
-	return "", fmt.Errorf("unable install from %d sources: %s",
+	return nil, fmt.Errorf("unable install from %d sources: %s",
 		len(sources), errs.ErrorOrNil())
 }
 

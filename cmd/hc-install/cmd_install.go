@@ -110,13 +110,13 @@ Option flags must be provided before the positional argument`)
 	return 0
 }
 
-func (c *InstallCommand) install(project, tag, installDirPath string, logger *log.Logger) (string, error) {
+func (c *InstallCommand) install(project, tag, installDirPath string, logger *log.Logger) (*src.Details, error) {
 	msg := fmt.Sprintf("hc-install: will install %s@%s", project, tag)
 	c.Ui.Info(msg)
 
 	v, err := version.NewVersion(tag)
 	if err != nil {
-		return "", fmt.Errorf("invalid version: %w", err)
+		return nil, fmt.Errorf("invalid version: %w", err)
 	}
 	i := hci.NewInstaller()
 	i.SetLogger(logger)

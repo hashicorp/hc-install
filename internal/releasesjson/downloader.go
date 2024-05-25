@@ -18,7 +18,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/hashicorp/hc-install/internal/httpclient"
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 type Downloader struct {
@@ -62,7 +62,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 		}
 	}
 
-	client := httpclient.NewHTTPClient()
+	client := retryablehttp.NewClient()
 
 	archiveURL := pb.URL
 	if d.BaseURL != "" {
@@ -85,7 +85,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 
 	d.Logger.Printf("downloading archive from %s", archiveURL)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, archiveURL, nil)
+	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, archiveURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", archiveURL, err)
 	}

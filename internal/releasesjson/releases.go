@@ -13,8 +13,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/hc-install/internal/httpclient"
 )
 
 const defaultBaseURL = "https://releases.hashicorp.com"
@@ -65,14 +65,14 @@ func (r *Releases) SetLogger(logger *log.Logger) {
 }
 
 func (r *Releases) ListProductVersions(ctx context.Context, productName string) (ProductVersionsMap, error) {
-	client := httpclient.NewHTTPClient()
+	client := retryablehttp.NewClient()
 
 	productIndexURL := fmt.Sprintf("%s/%s/index.json",
 		r.BaseURL,
 		url.PathEscape(productName))
 	r.logger.Printf("requesting versions from %s", productIndexURL)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, productIndexURL, nil)
+	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, productIndexURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", productIndexURL, err)
 	}
@@ -122,7 +122,7 @@ func (r *Releases) ListProductVersions(ctx context.Context, productName string) 
 }
 
 func (r *Releases) GetProductVersion(ctx context.Context, product string, version *version.Version) (*ProductVersion, error) {
-	client := httpclient.NewHTTPClient()
+	client := retryablehttp.NewClient()
 
 	indexURL := fmt.Sprintf("%s/%s/%s/index.json",
 		r.BaseURL,
@@ -130,7 +130,7 @@ func (r *Releases) GetProductVersion(ctx context.Context, product string, versio
 		url.PathEscape(version.String()))
 	r.logger.Printf("requesting version from %s", indexURL)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, indexURL, nil)
+	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, indexURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", indexURL, err)
 	}

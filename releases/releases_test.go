@@ -50,6 +50,9 @@ func TestLatestVersion(t *testing.T) {
 		t.Fatalf("versions don't match (expected: %s, installed: %s)",
 			latestConstraint, v)
 	}
+	if installDetails.Product != lv.Product.Name {
+		t.Fatalf("expected product name %q, got %q", lv.Product.Name, installDetails.Product)
+	}
 }
 
 func TestLatestVersion_basic(t *testing.T) {
@@ -77,6 +80,9 @@ func TestLatestVersion_basic(t *testing.T) {
 	if !expectedVersion.Equal(v) {
 		t.Fatalf("versions don't match (expected: %s, installed: %s)",
 			expectedVersion, v)
+	}
+	if installDetails.Product != lv.Product.Name {
+		t.Fatalf("expected product name %q, got %q", lv.Product.Name, installDetails.Product)
 	}
 }
 
@@ -144,6 +150,11 @@ func TestExactVersion(t *testing.T) {
 	v, err := product.Terraform.GetVersion(ctx, execPath)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if !versionToInstall.Equal(installDetails.Version) {
+		t.Fatalf("the version of the installed binary %s does not match the returned version %s",
+			installDetails.Version, versionToInstall)
 	}
 
 	if !versionToInstall.Equal(v) {

@@ -106,7 +106,7 @@ Option flags must be provided before the positional argument`)
 		return 1
 	}
 
-	c.Ui.Info(fmt.Sprintf("installed %s@%s to %s", product, installedDetails.Version, installedDetails.ExecutablePath))
+	c.Ui.Info(fmt.Sprintf("installed %s@%s to %s", installedDetails.Product, installedDetails.Version, installedDetails.ExecutablePath))
 	return 0
 }
 

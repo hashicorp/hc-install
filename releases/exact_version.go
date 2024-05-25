@@ -155,6 +155,7 @@ func (ev *ExactVersion) Install(ctx context.Context) (*src.Details, error) {
 	}
 
 	result := &src.Details{
+		Product:        ev.Product.Name,
 		ExecutablePath: execPath,
 		Version:        ev.Version,
 	}

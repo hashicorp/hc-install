@@ -98,6 +98,7 @@ func (av *AnyVersion) Find(ctx context.Context) (*src.Details, error) {
 		}
 	}
 	return &src.Details{
+		Product:        av.Product.Name,
 		ExecutablePath: execPath,
 		Version:        nil,
 	}, nil

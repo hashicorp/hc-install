@@ -17,6 +17,7 @@ type Source interface {
 }
 
 type Details struct {
+	Product        string
 	Version        *version.Version
 	ExecutablePath string
 }

@@ -94,6 +94,7 @@ func (i *Installer) Ensure(ctx context.Context, sources []src.Source) (*src.Deta
 			}
 
 			return &src.Details{
+				Product:        "",
 				ExecutablePath: execPath,
 				Version:        nil,
 			}, nil

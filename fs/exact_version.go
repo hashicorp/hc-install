@@ -99,6 +99,7 @@ func (ev *ExactVersion) Find(ctx context.Context) (*src.Details, error) {
 	}
 
 	return &src.Details{
+		Product:        ev.Product.Name,
 		ExecutablePath: execPath,
 		Version:        version,
 	}, nil

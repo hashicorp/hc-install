@@ -146,6 +146,7 @@ func (lv *LatestVersion) Install(ctx context.Context) (*src.Details, error) {
 	}
 
 	return &src.Details{
+		Product:        lv.Product.Name,
 		ExecutablePath: execPath,
 		Version:        pv.Version,
 	}, nil

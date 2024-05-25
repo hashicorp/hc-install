@@ -101,6 +101,7 @@ func (v *Version) Find(ctx context.Context) (*src.Details, error) {
 	}
 
 	return &src.Details{
+		Product:        v.Product.Name,
 		ExecutablePath: execPath,
 		Version:        version,
 	}, nil

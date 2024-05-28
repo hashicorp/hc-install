@@ -227,7 +227,6 @@ var licenseFiles = []string{
 	"EULA.txt",
 	"TermsOfEvaluation.txt",
 	"LICENSE.txt",
-	"LICENSE",
 }
 
 func isLicenseFile(filename string) bool {

@@ -217,15 +217,6 @@ func (gr *GitRevision) copyLicenseFile(srcPath, dstPath string) error {
 	}
 	defer src.Close()
 
-	// Create the directory if it does not exist
-	dir := filepath.Dir(dstPath)
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		gr.log().Printf("Directory %q does not exist, creating it", dir)
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			return fmt.Errorf("failed to create directory %q: %w", dir, err)
-		}
-	}
-
 	dst, err := os.Create(dstPath)
 	if err != nil {
 		return fmt.Errorf("failed to create license file at %q: %w", dstPath, err)

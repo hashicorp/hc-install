@@ -182,7 +182,7 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 	if licenseDir == "" {
 		licenseDir = installDir
 	}
-	gr.log().Printf("Attempting to copy license file to %q", licenseDir)
+	gr.log().Printf("attempting to copy license file to %q", licenseDir)
 	if err := gr.copyLicenseIfExists(repoDir, licenseDir); err != nil {
 		return "", err
 	}
@@ -198,7 +198,7 @@ func (gr *GitRevision) copyLicenseIfExists(repoDir string, dstDir string) error 
 	for _, file := range licenseFiles {
 		srcPath := filepath.Join(repoDir, file)
 		if _, err := os.Stat(srcPath); err == nil {
-			gr.log().Printf("Found license file at %q", srcPath)
+			gr.log().Printf("found license file at %q", srcPath)
 			dstPath := filepath.Join(dstDir, file)
 			if err := gr.copyLicenseFile(srcPath, dstPath); err != nil {
 				return fmt.Errorf("failed to copy license file from %q to %q: %w", srcPath, dstPath, err)
@@ -210,7 +210,7 @@ func (gr *GitRevision) copyLicenseIfExists(repoDir string, dstDir string) error 
 }
 
 func (gr *GitRevision) copyLicenseFile(srcPath, dstPath string) error {
-	gr.log().Printf("Copying license file from %q to %q", srcPath, dstPath)
+	gr.log().Printf("copying license file from %q to %q", srcPath, dstPath)
 	src, err := os.Open(srcPath)
 	if err != nil {
 		return fmt.Errorf("failed to open license file at %q: %w", srcPath, err)

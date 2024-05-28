@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-retryablehttp"
+	"github.com/hashicorp/hc-install/internal/httpclient"
 )
 
 type Downloader struct {
@@ -62,7 +63,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 		}
 	}
 
-	client := retryablehttp.NewClient()
+	client := httpclient.NewHTTPClient()
 
 	archiveURL := pb.URL
 	if d.BaseURL != "" {

@@ -16,6 +16,7 @@ import (
 
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/hashicorp/go-retryablehttp"
+	"github.com/hashicorp/hc-install/internal/httpclient"
 )
 
 type ChecksumDownloader struct {
@@ -52,7 +53,7 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums(ctx context.Context) (C
 		return nil, err
 	}
 
-	client := retryablehttp.NewClient()
+	client := httpclient.NewHTTPClient()
 	sigURL := fmt.Sprintf("%s/%s/%s/%s", cd.BaseURL,
 		url.PathEscape(cd.ProductVersion.Name),
 		url.PathEscape(cd.ProductVersion.Version.String()),

@@ -15,6 +15,7 @@ import (
 
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/hc-install/internal/httpclient"
 )
 
 const defaultBaseURL = "https://releases.hashicorp.com"
@@ -65,7 +66,7 @@ func (r *Releases) SetLogger(logger *log.Logger) {
 }
 
 func (r *Releases) ListProductVersions(ctx context.Context, productName string) (ProductVersionsMap, error) {
-	client := retryablehttp.NewClient()
+	client := httpclient.NewHTTPClient()
 
 	productIndexURL := fmt.Sprintf("%s/%s/index.json",
 		r.BaseURL,

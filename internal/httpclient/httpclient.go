@@ -11,13 +11,13 @@ import (
 	"github.com/hashicorp/hc-install/version"
 )
 
-// NewHTTPClient provides a pre-configured retryablehttp.Client
+// NewHTTPClient provides a pre-configured http.Client
 // e.g. with relevant User-Agent header
-func NewHTTPClient() *retryablehttp.Client {
-	client := retryablehttp.NewClient()
-	client.HTTPClient.Transport = &userAgentRoundTripper{
+func NewHTTPClient() *http.Client {
+	client := retryablehttp.NewClient().StandardClient()
+	client.Transport = &userAgentRoundTripper{
 		userAgent: fmt.Sprintf("hc-install/%s", version.Version()),
-		inner:     client.HTTPClient.Transport,
+		inner:     client.Transport,
 	}
 	return client
 }

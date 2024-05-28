@@ -15,7 +15,6 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
-	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/hc-install/internal/httpclient"
 )
 
@@ -60,7 +59,7 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums(ctx context.Context) (C
 		url.PathEscape(sigFilename))
 	cd.Logger.Printf("downloading signature from %s", sigURL)
 
-	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, sigURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, sigURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", sigURL, err)
 	}
@@ -81,7 +80,7 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums(ctx context.Context) (C
 		url.PathEscape(cd.ProductVersion.SHASUMS))
 	cd.Logger.Printf("downloading checksums from %s", shasumsURL)
 
-	req, err = retryablehttp.NewRequestWithContext(ctx, http.MethodGet, shasumsURL, nil)
+	req, err = http.NewRequestWithContext(ctx, http.MethodGet, shasumsURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", shasumsURL, err)
 	}

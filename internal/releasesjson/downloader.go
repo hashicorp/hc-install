@@ -18,7 +18,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/hc-install/internal/httpclient"
 )
 
@@ -86,7 +85,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 
 	d.Logger.Printf("downloading archive from %s", archiveURL)
 
-	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, archiveURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, archiveURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", archiveURL, err)
 	}

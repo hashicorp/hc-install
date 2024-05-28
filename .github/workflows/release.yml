@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup bob
-        uses: hashicorp/action-setup-bob@37475d2579813f74f3a9f4e86870498c8e560a1c # v2
+        uses: hashicorp/action-setup-bob@f4b0b1e80542d8c35a7b1ad071e7da8fffb15378 # v2
         with:
           github-token:
             ${{ secrets.BOB_GITHUB_TOKEN }}
@@ -49,7 +49,7 @@ jobs:
     needs: staging
     steps:
       - name: Setup bob
-        uses: hashicorp/action-setup-bob@37475d2579813f74f3a9f4e86870498c8e560a1c # v2
+        uses: hashicorp/action-setup-bob@f4b0b1e80542d8c35a7b1ad071e7da8fffb15378 # v2
         with:
           github-token:
             ${{ secrets.BOB_GITHUB_TOKEN }}

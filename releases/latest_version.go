@@ -27,8 +27,8 @@ type LatestVersion struct {
 	Timeout            time.Duration
 	IncludePrereleases bool
 
-	// LicenseDir represents directory path where to install license files (required for enterprise versions, optional for OSS)
-	// If empty, license files will placed in the same directory as the binary.
+	// LicenseDir represents directory path where to install license files
+	// (required for enterprise versions, optional for Community editions).
 	LicenseDir string
 
 	// Enterprise indicates installation of enterprise version (leave nil for Community editions)

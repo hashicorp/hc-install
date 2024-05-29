@@ -25,10 +25,7 @@ var (
 func TestGitRevision_terraform(t *testing.T) {
 	testutil.EndToEndTest(t)
 
-	tempDir, err := os.MkdirTemp("", "license")
-	if err != nil {
-		t.Fatal(err)
-	}
+	tempDir := t.TempDir()
 
 	gr := &GitRevision{
 		Product:    product.Terraform,

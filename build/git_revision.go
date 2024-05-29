@@ -38,7 +38,7 @@ type GitRevision struct {
 	Product    product.Product
 	InstallDir string
 
-	// LicenseDir represents directory path where to install license files (required for enterprise versions, optional for OSS)
+	// LicenseDir represents directory path where to install license files.
 	// If empty, license files will placed in the same directory as the binary.
 	LicenseDir string
 

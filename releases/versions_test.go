@@ -61,9 +61,11 @@ func TestVersions_List_enterprise(t *testing.T) {
 	versions := &Versions{
 		Product:     product.Vault,
 		Constraints: cons,
-		Enterprise: &EnterpriseOptions{
-			Meta:       "hsm",
+		Install: InstallationOptions{
 			LicenseDir: "/some/path",
+		},
+		Enterprise: &EnterpriseOptions{
+			Meta: "hsm",
 		},
 	}
 

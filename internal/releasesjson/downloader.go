@@ -175,6 +175,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 
 		// Determine the appropriate destination file path
 		dstDir := binDir
+		// for license files, use binDir if licenseDir is not set
 		if isLicenseFile(f.Name) && licenseDir != "" {
 			dstDir = licenseDir
 		}

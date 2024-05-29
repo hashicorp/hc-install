@@ -27,11 +27,21 @@ var (
 	discardLogger = log.New(io.Discard, "", 0)
 )
 
+const (
+	// dstLicenseFileName is the name of the license file to be copied to the destination directory
+	dstLicenseFileName = "LICENSE.txt"
+)
+
 // GitRevision installs a particular git revision by cloning
 // the repository and building it per product BuildInstructions
 type GitRevision struct {
-	Product      product.Product
-	InstallDir   string
+	Product    product.Product
+	InstallDir string
+
+	// LicenseDir represents directory path where to install license files.
+	// If empty, license files will placed in the same directory as the binary.
+	LicenseDir string
+
 	Ref          string
 	CloneTimeout time.Duration
 	BuildTimeout time.Duration
@@ -169,21 +179,17 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 		installDir = tmpDir
 		gr.pathsToRemove = append(gr.pathsToRemove, installDir)
 	}
+	gr.log().Printf("install dir is %q", installDir)
 
 	// copy license file on best effort basis
-	dstLicensePath := filepath.Join(installDir, "LICENSE.txt")
-	srcLicensePath := filepath.Join(repoDir, "LICENSE.txt")
-	altSrcLicensePath := filepath.Join(repoDir, "LICENSE")
-	if _, err := os.Stat(srcLicensePath); err == nil {
-		err = gr.copyLicenseFile(srcLicensePath, dstLicensePath)
-		if err != nil {
-			return "", err
-		}
-	} else if _, err := os.Stat(altSrcLicensePath); err == nil {
-		err = gr.copyLicenseFile(altSrcLicensePath, dstLicensePath)
-		if err != nil {
-			return "", err
-		}
+	// default to installDir if LicenseDir is not set
+	licenseDir := gr.LicenseDir
+	if licenseDir == "" {
+		licenseDir = installDir
+	}
+	gr.log().Printf("attempting to copy license file to %q", licenseDir)
+	if err := gr.copyLicenseIfExists(repoDir, licenseDir); err != nil {
+		return "", err
 	}
 
 	gr.log().Printf("building %s (timeout: %s)", gr.Product.Name, buildTimeout)
@@ -191,23 +197,44 @@ func (gr *GitRevision) Build(ctx context.Context) (string, error) {
 	return bi.Build.Build(buildCtx, repoDir, installDir, gr.Product.BinaryName())
 }
 
+func (gr *GitRevision) copyLicenseIfExists(repoDir string, dstDir string) error {
+	licenseFiles := []string{"LICENSE.txt", "LICENSE"}
+
+	for _, file := range licenseFiles {
+		srcPath := filepath.Join(repoDir, file)
+		if _, err := os.Stat(srcPath); err == nil {
+			gr.log().Printf("found license file at %q", srcPath)
+			dstPath := filepath.Join(dstDir, dstLicenseFileName)
+			if err := gr.copyLicenseFile(srcPath, dstPath); err != nil {
+				return fmt.Errorf("failed to copy license file from %q to %q: %w", srcPath, dstPath, err)
+			}
+		}
+	}
+
+	return nil
+}
+
 func (gr *GitRevision) copyLicenseFile(srcPath, dstPath string) error {
+	gr.log().Printf("copying license file from %q to %q", srcPath, dstPath)
 	src, err := os.Open(srcPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open license file at %q: %w", srcPath, err)
 	}
 	defer src.Close()
+
 	dst, err := os.Create(dstPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create license file at %q: %w", dstPath, err)
 	}
 	defer dst.Close()
 	n, err := io.Copy(dst, src)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to copy license file from %q to %q: %w", srcPath, dstPath, err)
 	}
 	gr.log().Printf("license file copied from %q to %q (%d bytes)",
 		srcPath, dstPath, n)
+	// Add the license file to the list of paths to remove after being successfully copied
+	gr.pathsToRemove = append(gr.pathsToRemove, dstPath)
 	return nil
 }
 
@@ -216,7 +243,7 @@ func (gr *GitRevision) Remove(ctx context.Context) error {
 		for _, path := range gr.pathsToRemove {
 			err := os.RemoveAll(path)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to remove %q: %w", path, err)
 			}
 		}
 	}

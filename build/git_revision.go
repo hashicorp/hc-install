@@ -27,6 +27,11 @@ var (
 	discardLogger = log.New(io.Discard, "", 0)
 )
 
+const (
+	// dstLicenseFileName is the name of the license file to be copied to the destination directory
+	dstLicenseFileName = "LICENSE.txt"
+)
+
 // GitRevision installs a particular git revision by cloning
 // the repository and building it per product BuildInstructions
 type GitRevision struct {
@@ -199,7 +204,7 @@ func (gr *GitRevision) copyLicenseIfExists(repoDir string, dstDir string) error 
 		srcPath := filepath.Join(repoDir, file)
 		if _, err := os.Stat(srcPath); err == nil {
 			gr.log().Printf("found license file at %q", srcPath)
-			dstPath := filepath.Join(dstDir, file)
+			dstPath := filepath.Join(dstDir, dstLicenseFileName)
 			if err := gr.copyLicenseFile(srcPath, dstPath); err != nil {
 				return fmt.Errorf("failed to copy license file from %q to %q: %w", srcPath, dstPath, err)
 			}

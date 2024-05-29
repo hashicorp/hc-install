@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/hashicorp/go-version"
@@ -42,15 +43,12 @@ func TestGitRevision_terraform(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	licensePath := filepath.Join(tempDir, dstLicenseFileName)
 	t.Cleanup(func() {
 		gr.Remove(ctx)
 		// check if license was deleted
-		files, err := os.ReadDir(tempDir)
-		if err != nil {
-			t.Fatal("failed to read license directory in cleanup", err)
-		}
-		if len(files) != 0 {
-			t.Fatalf("license file not deleted, tempDir %q is not empty", tempDir)
+		if _, err := os.Stat(licensePath); !os.IsNotExist(err) {
+			t.Fatalf("license file not deleted at %q: %s", licensePath, err)
 		}
 	})
 
@@ -69,12 +67,8 @@ func TestGitRevision_terraform(t *testing.T) {
 	}
 
 	// check if license was copied
-	files, err := os.ReadDir(tempDir)
-	if err != nil {
-		t.Fatal("failed to read license directory", err)
-	}
-	if len(files) == 0 {
-		t.Fatalf("expected license file not found, tempDir %q is empty", tempDir)
+	if _, err := os.Stat(licensePath); err != nil {
+		t.Fatalf("expected license file not found at %q: %s", licensePath, err)
 	}
 }
 

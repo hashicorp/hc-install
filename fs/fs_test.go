@@ -59,10 +59,11 @@ func TestVersion(t *testing.T) {
 	}
 	ev.SetLogger(testutil.TestLogger())
 
-	execPath, err := ev.Install(ctx)
+	installDetails, err := ev.Install(ctx)
 	if err != nil {
 		t.Fatalf("installing release version failed: %v", err)
 	}
+	execPath := installDetails.ExecutablePath
 
 	// Version matches constraint
 	v := &Version{

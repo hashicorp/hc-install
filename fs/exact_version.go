@@ -12,9 +12,10 @@ import (
 
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hc-install/errors"
-	"github.com/hashicorp/hc-install/internal/src"
+	isrc "github.com/hashicorp/hc-install/internal/src"
 	"github.com/hashicorp/hc-install/internal/validators"
 	"github.com/hashicorp/hc-install/product"
+	"github.com/hashicorp/hc-install/src"
 )
 
 // ExactVersion finds the first executable binary of the product name
@@ -29,8 +30,8 @@ type ExactVersion struct {
 	logger *log.Logger
 }
 
-func (*ExactVersion) IsSourceImpl() src.InstallSrcSigil {
-	return src.InstallSrcSigil{}
+func (*ExactVersion) IsSourceImpl() isrc.InstallSrcSigil {
+	return isrc.InstallSrcSigil{}
 }
 
 func (ev *ExactVersion) SetLogger(logger *log.Logger) {
@@ -57,13 +58,15 @@ func (ev *ExactVersion) Validate() error {
 	return nil
 }
 
-func (ev *ExactVersion) Find(ctx context.Context) (string, error) {
+func (ev *ExactVersion) Find(ctx context.Context) (*src.Details, error) {
 	timeout := defaultTimeout
 	if ev.Timeout > 0 {
 		timeout = ev.Timeout
 	}
 	ctx, cancelFunc := context.WithTimeout(ctx, timeout)
 	defer cancelFunc()
+
+	var version *version.Version // define a variable to hold the version
 
 	execPath, err := findFile(lookupDirs(ev.ExtraPaths), ev.Product.BinaryName(), func(file string) error {
 		err := checkExecutable(file)
@@ -80,19 +83,24 @@ func (ev *ExactVersion) Find(ctx context.Context) (string, error) {
 			return fmt.Errorf("version (%s) doesn't match %s", v, ev.Version)
 		}
 
+		version = v
 		return nil
 	})
 	if err != nil {
-		return "", errors.SkippableErr(err)
+		return nil, errors.SkippableErr(err)
 	}
 
 	if !filepath.IsAbs(execPath) {
 		var err error
 		execPath, err = filepath.Abs(execPath)
 		if err != nil {
-			return "", errors.SkippableErr(err)
+			return nil, errors.SkippableErr(err)
 		}
 	}
 
-	return execPath, nil
+	return &src.Details{
+		Product:        ev.Product.Name,
+		ExecutablePath: execPath,
+		Version:        version,
+	}, nil
 }

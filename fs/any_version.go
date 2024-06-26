@@ -10,9 +10,10 @@ import (
 	"path/filepath"
 
 	"github.com/hashicorp/hc-install/errors"
-	"github.com/hashicorp/hc-install/internal/src"
+	isrc "github.com/hashicorp/hc-install/internal/src"
 	"github.com/hashicorp/hc-install/internal/validators"
 	"github.com/hashicorp/hc-install/product"
+	"github.com/hashicorp/hc-install/src"
 )
 
 // AnyVersion finds an executable binary of any version
@@ -41,8 +42,8 @@ type AnyVersion struct {
 	logger *log.Logger
 }
 
-func (*AnyVersion) IsSourceImpl() src.InstallSrcSigil {
-	return src.InstallSrcSigil{}
+func (*AnyVersion) IsSourceImpl() isrc.InstallSrcSigil {
+	return isrc.InstallSrcSigil{}
 }
 
 func (av *AnyVersion) Validate() error {
@@ -72,27 +73,33 @@ func (av *AnyVersion) log() *log.Logger {
 	return av.logger
 }
 
-func (av *AnyVersion) Find(ctx context.Context) (string, error) {
+func (av *AnyVersion) Find(ctx context.Context) (*src.Details, error) {
 	if av.ExactBinPath != "" {
 		err := checkExecutable(av.ExactBinPath)
 		if err != nil {
-			return "", errors.SkippableErr(err)
+			return nil, errors.SkippableErr(err)
 		}
 
-		return av.ExactBinPath, nil
+		return &src.Details{
+			ExecutablePath: av.ExactBinPath,
+		}, nil
 	}
 
 	execPath, err := findFile(lookupDirs(av.ExtraPaths), av.Product.BinaryName(), checkExecutable)
 	if err != nil {
-		return "", errors.SkippableErr(err)
+		return nil, errors.SkippableErr(err)
 	}
 
 	if !filepath.IsAbs(execPath) {
 		var err error
 		execPath, err = filepath.Abs(execPath)
 		if err != nil {
-			return "", errors.SkippableErr(err)
+			return nil, errors.SkippableErr(err)
 		}
 	}
-	return execPath, nil
+	return &src.Details{
+		Product:        av.Product.Name,
+		ExecutablePath: execPath,
+		Version:        nil,
+	}, nil
 }

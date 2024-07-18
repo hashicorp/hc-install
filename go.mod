@@ -3,7 +3,7 @@ module github.com/hashicorp/hc-install
 go 1.18
 
 require (
-	github.com/ProtonMail/go-crypto v1.1.0-alpha.2
+	github.com/ProtonMail/go-crypto v1.1.0-alpha.5-proton
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/google/go-cmp v0.6.0
 	github.com/hashicorp/cli v1.1.6

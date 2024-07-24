@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -64,23 +65,9 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 
 	client := httpclient.NewHTTPClient()
 
-	archiveURL := pb.URL
-	if d.BaseURL != "" {
-		// If custom URL is set, use that instead of the one from the JSON.
-		// Also ensures that absolute download links from mocked responses
-		// are still pointing to the mock server if one is set.
-		baseURL, err := url.Parse(d.BaseURL)
-		if err != nil {
-			return nil, err
-		}
-
-		u, err := url.Parse(archiveURL)
-		if err != nil {
-			return nil, err
-		}
-		u.Scheme = baseURL.Scheme
-		u.Host = baseURL.Host
-		archiveURL = u.String()
+	archiveURL, err := determineArchiveURL(pb.URL, d.BaseURL)
+	if err != nil {
+		return nil, err
 	}
 
 	d.Logger.Printf("downloading archive from %s", archiveURL)
@@ -236,4 +223,32 @@ func isLicenseFile(filename string) bool {
 		}
 	}
 	return false
+}
+
+// determineArchiveURL determines the archive URL based on the base URL provided.
+func determineArchiveURL(archiveURL, baseURL string) (string, error) {
+	// If custom URL is set, use that instead of the one from the JSON.
+	// Also ensures that absolute download links from mocked responses
+	// are still pointing to the mock server if one is set.
+	if baseURL == "" {
+		return archiveURL, nil
+	}
+
+	base, err := url.Parse(baseURL)
+	if err != nil {
+		return "", err
+	}
+
+	u, err := url.Parse(archiveURL)
+	if err != nil {
+		return "", err
+	}
+
+	// Preserve the path from the baseURL and append the path from the archiveURL.
+	newPath := path.Join(base.Path, strings.TrimPrefix(u.Path, "/"))
+	u.Scheme = base.Scheme
+	u.Host = base.Host
+	u.Path = newPath
+
+	return u.String(), nil
 }

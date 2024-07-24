@@ -14,7 +14,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -244,11 +243,8 @@ func determineArchiveURL(archiveURL, baseURL string) (string, error) {
 		return "", err
 	}
 
-	// Preserve the path from the baseURL and append the path from the archiveURL.
-	newPath := path.Join(base.Path, strings.TrimPrefix(u.Path, "/"))
-	u.Scheme = base.Scheme
-	u.Host = base.Host
-	u.Path = newPath
+	// Use base URL path and append the path from the archive URL.
+	newArchiveURL := base.JoinPath(u.Path)
 
-	return u.String(), nil
+	return newArchiveURL.String(), nil
 }

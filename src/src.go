@@ -7,6 +7,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/hashicorp/go-version"
 	isrc "github.com/hashicorp/hc-install/internal/src"
 )
 
@@ -15,14 +16,20 @@ type Source interface {
 	IsSourceImpl() isrc.InstallSrcSigil
 }
 
+type Details struct {
+	Product        string
+	Version        *version.Version
+	ExecutablePath string
+}
+
 type Installable interface {
 	Source
-	Install(ctx context.Context) (string, error)
+	Install(ctx context.Context) (*Details, error)
 }
 
 type Findable interface {
 	Source
-	Find(ctx context.Context) (string, error)
+	Find(ctx context.Context) (*Details, error)
 }
 
 type Buildable interface {

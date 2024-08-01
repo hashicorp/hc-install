@@ -35,16 +35,12 @@ func TestLatestVersion(t *testing.T) {
 
 	ctx := context.Background()
 
-	execPath, err := lv.Install(ctx)
+	installDetails, err := lv.Install(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	v := installDetails.Version
 	t.Cleanup(func() { lv.Remove(ctx) })
-
-	v, err := product.Terraform.GetVersion(ctx, execPath)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	latestConstraint, err := version.NewConstraint(">= 1.0")
 	if err != nil {
@@ -53,6 +49,9 @@ func TestLatestVersion(t *testing.T) {
 	if !latestConstraint.Check(v) {
 		t.Fatalf("versions don't match (expected: %s, installed: %s)",
 			latestConstraint, v)
+	}
+	if installDetails.Product != lv.Product.Name {
+		t.Fatalf("expected product name %q, got %q", lv.Product.Name, installDetails.Product)
 	}
 }
 
@@ -67,16 +66,12 @@ func TestLatestVersion_basic(t *testing.T) {
 
 	ctx := context.Background()
 
-	execPath, err := lv.Install(ctx)
+	installDetails, err := lv.Install(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	v := installDetails.Version
 	t.Cleanup(func() { lv.Remove(ctx) })
-
-	v, err := product.Terraform.GetVersion(ctx, execPath)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	expectedVersion, err := version.NewVersion("0.14.11")
 	if err != nil {
@@ -85,6 +80,9 @@ func TestLatestVersion_basic(t *testing.T) {
 	if !expectedVersion.Equal(v) {
 		t.Fatalf("versions don't match (expected: %s, installed: %s)",
 			expectedVersion, v)
+	}
+	if installDetails.Product != lv.Product.Name {
+		t.Fatalf("expected product name %q, got %q", lv.Product.Name, installDetails.Product)
 	}
 }
 
@@ -101,16 +99,13 @@ func TestLatestVersion_prereleases(t *testing.T) {
 
 	ctx := context.Background()
 
-	execPath, err := lv.Install(ctx)
+	installDetails, err := lv.Install(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { lv.Remove(ctx) })
+	v := installDetails.Version
 
-	v, err := product.Terraform.GetVersion(ctx, execPath)
-	if err != nil {
-		t.Fatal(err)
-	}
+	t.Cleanup(func() { lv.Remove(ctx) })
 
 	expectedVersion, err := version.NewVersion("0.15.0-rc2")
 	if err != nil {
@@ -134,10 +129,12 @@ func TestExactVersion(t *testing.T) {
 
 	ctx := context.Background()
 
-	execPath, err := ev.Install(ctx)
+	installDetails, err := ev.Install(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	execPath := installDetails.ExecutablePath
 
 	licensePath := filepath.Join(filepath.Dir(execPath), "LICENSE.txt")
 	t.Cleanup(func() {
@@ -153,6 +150,11 @@ func TestExactVersion(t *testing.T) {
 	v, err := product.Terraform.GetVersion(ctx, execPath)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if !versionToInstall.Equal(installDetails.Version) {
+		t.Fatalf("the version of the installed binary %s does not match the returned version %s",
+			installDetails.Version, versionToInstall)
 	}
 
 	if !versionToInstall.Equal(v) {

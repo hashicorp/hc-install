@@ -99,24 +99,24 @@ Option flags must be provided before the positional argument`)
 		logger = log.New(f, "[DEBUG] ", log.LstdFlags|log.Lshortfile|log.Lmicroseconds)
 	}
 
-	installedPath, err := c.install(product, version, installDirPath, logger)
+	installedDetails, err := c.install(product, version, installDirPath, logger)
 	if err != nil {
 		msg := fmt.Sprintf("failed to install %s@%s: %v", product, version, err)
 		c.Ui.Error(msg)
 		return 1
 	}
 
-	c.Ui.Info(fmt.Sprintf("installed %s@%s to %s", product, version, installedPath))
+	c.Ui.Info(fmt.Sprintf("installed %s@%s to %s", installedDetails.Product, installedDetails.Version, installedDetails.ExecutablePath))
 	return 0
 }
 
-func (c *InstallCommand) install(project, tag, installDirPath string, logger *log.Logger) (string, error) {
+func (c *InstallCommand) install(project, tag, installDirPath string, logger *log.Logger) (*src.Details, error) {
 	msg := fmt.Sprintf("hc-install: will install %s@%s", project, tag)
 	c.Ui.Info(msg)
 
 	v, err := version.NewVersion(tag)
 	if err != nil {
-		return "", fmt.Errorf("invalid version: %w", err)
+		return nil, fmt.Errorf("invalid version: %w", err)
 	}
 	i := hci.NewInstaller()
 	i.SetLogger(logger)

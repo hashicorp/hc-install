@@ -20,6 +20,7 @@ import (
 	isrc "github.com/hashicorp/hc-install/internal/src"
 	"github.com/hashicorp/hc-install/internal/validators"
 	"github.com/hashicorp/hc-install/product"
+	"github.com/hashicorp/hc-install/src"
 )
 
 var (
@@ -73,7 +74,7 @@ func (lv *LatestVersion) Validate() error {
 	return nil
 }
 
-func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
+func (lv *LatestVersion) Install(ctx context.Context) (*src.Details, error) {
 	timeout := defaultTimeout
 	if lv.Timeout > 0 {
 		timeout = lv.Timeout
@@ -89,12 +90,12 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 		Force:   true,
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	latestVersion, err := version.NewVersion(resp.CurrentVersion)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if lv.pathsToRemove == nil {
@@ -107,7 +108,7 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 		dirName := fmt.Sprintf("%s_*", lv.Product.Name)
 		dstDir, err = os.MkdirTemp("", dirName)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		lv.pathsToRemove = append(lv.pathsToRemove, dstDir)
 		lv.log().Printf("created new temp dir at %s", dstDir)
@@ -118,7 +119,7 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 	rels.SetLogger(lv.log())
 	pv, err := rels.GetProductVersion(ctx, lv.Product.Name, latestVersion)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	d := &rjson.Downloader{
@@ -137,7 +138,7 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 		lv.pathsToRemove = append(lv.pathsToRemove, up.PathsToRemove...)
 	}
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	execPath := filepath.Join(dstDir, lv.Product.BinaryName())
@@ -147,10 +148,14 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 	lv.log().Printf("changing perms of %s", execPath)
 	err = os.Chmod(execPath, 0o700)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return execPath, nil
+	return &src.Details{
+		Product:        lv.Product.Name,
+		ExecutablePath: execPath,
+		Version:        pv.Version,
+	}, nil
 }
 
 func (lv *LatestVersion) Remove(ctx context.Context) error {

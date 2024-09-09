@@ -42,6 +42,13 @@ jobs:
           - ${{ needs.resolve-versions.outputs.oldstable }}
           - ${{ needs.resolve-versions.outputs.stable }}
     steps:
+    - name: Free up space on macOS runner
+      if: ${{ matrix.os == 'macos-latest' }}
+      run: |
+        df -hI /dev/disk3s1s1
+        sudo rm -rf /Applications/Xcode*
+        df -hI /dev/disk3s1s1
+
     - name: Check out code
       uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 

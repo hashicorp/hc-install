@@ -96,6 +96,12 @@ jobs:
           - ${{ needs.resolve-versions.outputs.oldstable }}
           - ${{ needs.resolve-versions.outputs.stable }}
     steps:
+    - name: Free up space on macOS runner
+      if: ${{ matrix.os == 'macos-latest' }}
+      run: |
+        df -hI /dev/disk3s1s1
+        sudo rm -rf /Applications/Xcode*
+        df -hI /dev/disk3s1s1
 
     - name: Set up Go
       uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2

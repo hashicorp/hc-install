@@ -1,6 +1,8 @@
 module github.com/hashicorp/hc-install
 
-go 1.18
+go 1.22.0
+
+toolchain go1.23.0
 
 require (
 	github.com/ProtonMail/go-crypto v1.1.0-alpha.2
@@ -12,7 +14,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/hashicorp/go-version v1.7.0
 	github.com/hashicorp/logutils v1.0.0
-	golang.org/x/mod v0.20.0
+	golang.org/x/mod v0.21.0
 )
 
 require (

@@ -106,7 +106,7 @@ jobs:
           mkdir -p "$LICENSE_DIR" && cp LICENSE "$LICENSE_DIR/LICENSE.txt"
       - name: Package
         if: ${{ matrix.goos == 'linux' }}
-        uses: hashicorp/actions-packaging-linux@9a9ce398877672719e83026640662f3182931fde # v1.8
+        uses: hashicorp/actions-packaging-linux@8d55a640bb30b5508f16757ea908b274564792d4 # v1.9
         with:
           name: ${{ github.event.repository.name }}
           description: "hc-install CLI allows installing multiple versions of HashiCorp products in automation"

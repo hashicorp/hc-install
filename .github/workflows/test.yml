@@ -115,7 +115,7 @@ jobs:
     - name: Unit tests
       timeout-minutes: 5
       run: |
-        go test -v -race ./...
+        go test -v -cover -race ./...
 
     - name: E2E tests
       timeout-minutes: 70

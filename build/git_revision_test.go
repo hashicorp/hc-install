@@ -127,6 +127,35 @@ func TestGitRevision_vault(t *testing.T) {
 	}
 }
 
+func TestGitRevision_packer(t *testing.T) {
+	testutil.EndToEndTest(t)
+
+	gr := &GitRevision{Product: product.Packer}
+	gr.SetLogger(testutil.TestLogger())
+
+	ctx := context.Background()
+
+	execPath, err := gr.Build(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { gr.Remove(ctx) })
+
+	v, err := product.Packer.GetVersion(ctx, execPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	latestConstraint, err := version.NewConstraint(">= 1.0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !latestConstraint.Check(v.Core()) {
+		t.Fatalf("versions don't match (expected: %s, installed: %s)",
+			latestConstraint, v)
+	}
+}
+
 func TestGitRevisionValidate(t *testing.T) {
 	t.Parallel()
 

@@ -15,15 +15,15 @@ import (
 	"github.com/hashicorp/hc-install/internal/build"
 )
 
-var terraformVersionOutputRe = regexp.MustCompile(`Terraform ` + simpleVersionRe)
+var packerVersionOutputRe = regexp.MustCompile(`Packer ` + simpleVersionRe)
 
-var Terraform = Product{
-	Name: "terraform",
+var Packer = Product{
+	Name: "packer",
 	BinaryName: func() string {
 		if runtime.GOOS == "windows" {
-			return "terraform.exe"
+			return "packer.exe"
 		}
-		return "terraform"
+		return "packer"
 	},
 	GetVersion: func(ctx context.Context, path string) (*version.Version, error) {
 		cmd := exec.CommandContext(ctx, path, "version")
@@ -35,7 +35,7 @@ var Terraform = Product{
 
 		stdout := strings.TrimSpace(string(out))
 
-		submatches := terraformVersionOutputRe.FindStringSubmatch(stdout)
+		submatches := packerVersionOutputRe.FindStringSubmatch(stdout)
 		if len(submatches) != 2 {
 			return nil, fmt.Errorf("unexpected number of version matches %d for %s", len(submatches), stdout)
 		}
@@ -47,7 +47,7 @@ var Terraform = Product{
 		return v, err
 	},
 	BuildInstructions: &BuildInstructions{
-		GitRepoURL:    "https://github.com/hashicorp/terraform.git",
+		GitRepoURL:    "https://github.com/hashicorp/packer.git",
 		PreCloneCheck: &build.GoIsInstalled{},
 		Build:         &build.GoBuild{DetectVendoring: true},
 	},

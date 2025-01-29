@@ -2,7 +2,7 @@ module github.com/hashicorp/hc-install/releases/testdata/terraform
 
 go 1.18
 
-require github.com/hashicorp/cli v1.1.6
+require github.com/hashicorp/cli v1.1.7
 
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
@@ -23,7 +23,7 @@ require (
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
-	golang.org/x/crypto v0.3.0 // indirect
-	golang.org/x/sys v0.14.0 // indirect
+	golang.org/x/crypto v0.32.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

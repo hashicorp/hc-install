@@ -7,7 +7,7 @@ toolchain go1.23.0
 require (
 	github.com/ProtonMail/go-crypto v1.1.5
 	github.com/go-git/go-git/v5 v5.13.2
-	github.com/google/go-cmp v0.6.0
+	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/cli v1.1.7
 	github.com/hashicorp/go-checkpoint v0.5.0
 	github.com/hashicorp/go-multierror v1.1.1

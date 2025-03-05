@@ -1,6 +1,9 @@
 module github.com/hashicorp/hc-install
 
-go 1.22.0
+go 1.23.0
+
+toolchain go1.24.0
+
 require (
 	github.com/ProtonMail/go-crypto v1.1.5
 	github.com/go-git/go-git/v5 v5.13.2

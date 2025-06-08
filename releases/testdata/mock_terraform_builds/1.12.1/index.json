@@ -1,4 +1,5 @@
 {
+  "name": "terraform",
   "versions": {
     "1.12.1": {
       "builds": [
@@ -119,6 +120,7 @@
       "shasums": "terraform_1.12.1_SHA256SUMS",
       "shasums_signature": "terraform_1.12.1_SHA256SUMS.sig",
       "shasums_signatures": [
+        "terraform_1.12.1_SHA256SUMS.2FCA0A85.sig",
         "terraform_1.12.1_SHA256SUMS.72D7468F.sig",
         "terraform_1.12.1_SHA256SUMS.sig"
       ],
@@ -243,6 +245,7 @@
       "shasums": "terraform_1.12.0-rc2_SHA256SUMS",
       "shasums_signature": "terraform_1.12.0-rc2_SHA256SUMS.sig",
       "shasums_signatures": [
+        "terraform_1.12.0-rc2_SHA256SUMS.2FCA0A85.sig",
         "terraform_1.12.0-rc2_SHA256SUMS.72D7468F.sig",
         "terraform_1.12.0-rc2_SHA256SUMS.sig"
       ],

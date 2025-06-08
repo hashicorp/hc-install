@@ -1,0 +1,252 @@
+{
+  "versions": {
+    "1.12.1": {
+      "builds": [
+        {
+          "arch": "amd64",
+          "filename": "terraform_1.12.1_darwin_amd64.zip",
+          "name": "terraform",
+          "os": "darwin",
+          "url": "https://releases.hashicorp.com/terraform/1.12.1/terraform_1.12.1_darwin_amd64.zip",
+          "version": "1.12.1"
+        },
+        {
+          "arch": "arm64",
+          "filename": "terraform_1.12.1_darwin_arm64.zip",
+          "name": "terraform",
+          "os": "darwin",
+          "url": "https://releases.hashicorp.com/terraform/1.12.1/terraform_1.12.1_darwin_arm64.zip",
+          "version": "1.12.1"
+        },
+        {
+          "arch": "386",
+          "filename": "terraform_1.12.1_freebsd_386.zip",
+          "name": "terraform",
+          "os": "freebsd",
+          "url": "https://releases.hashicorp.com/terraform/1.12.1/terraform_1.12.1_freebsd_386.zip",
+          "version": "1.12.1"
+        },
+        {
+          "arch": "amd64",
+          "filename": "terraform_1.12.1_freebsd_amd64.zip",
+          "name": "terraform",
+          "os": "freebsd",
+          "url": "https://releases.hashicorp.com/terraform/1.12.1/terraform_1.12.1_freebsd_amd64.zip",
+          "version": "1.12.1"
+        },
+        {
+          "arch": "arm",
+          "filename": "terraform_1.12.1_freebsd_arm.zip",
+          "name": "terraform",
+          "os": "freebsd",
+          "url": "https://releases.hashicorp.com/terraform/1.12.1/terraform_1.12.1_freebsd_arm.zip",
+          "version": "1.12.1"
+        },
+        {
+          "arch": "386",
+          "filename": "terraform_1.12.1_linux_386.zip",
+          "name": "terraform",
+          "os": "linux",
+          "url": "https://releases.hashicorp.com/terraform/1.12.1/terraform_1.12.1_linux_386.zip",
+          "version": "1.12.1"
+        },
+        {
+          "arch": "amd64",
+          "filename": "terraform_1.12.1_linux_amd64.zip",
+          "name": "terraform",
+          "os": "linux",
+          "url": "https://releases.hashicorp.com/terraform/1.12.1/terraform_1.12.1_linux_amd64.zip",
+          "version": "1.12.1"
+        },
+        {
+          "arch": "arm",
+          "filename": "terraform_1.12.1_linux_arm.zip",
+          "name": "terraform",
+          "os": "linux",
+          "url": "https://releases.hashicorp.com/terraform/1.12.1/terraform_1.12.1_linux_arm.zip",
+          "version": "1.12.1"
+        },
+        {
+          "arch": "arm64",
+          "filename": "terraform_1.12.1_linux_arm64.zip",
+          "name": "terraform",
+          "os": "linux",
+          "url": "https://releases.hashicorp.com/terraform/1.12.1/terraform_1.12.1_linux_arm64.zip",
+          "version": "1.12.1"
+        },
+        {
+          "arch": "386",
+          "filename": "terraform_1.12.1_openbsd_386.zip",
+          "name": "terraform",
+          "os": "openbsd",
+          "url": "https://releases.hashicorp.com/terraform/1.12.1/terraform_1.12.1_openbsd_386.zip",
+          "version": "1.12.1"
+        },
+        {
+          "arch": "amd64",
+          "filename": "terraform_1.12.1_openbsd_amd64.zip",
+          "name": "terraform",
+          "os": "openbsd",
+          "url": "https://releases.hashicorp.com/terraform/1.12.1/terraform_1.12.1_openbsd_amd64.zip",
+          "version": "1.12.1"
+        },
+        {
+          "arch": "amd64",
+          "filename": "terraform_1.12.1_solaris_amd64.zip",
+          "name": "terraform",
+          "os": "solaris",
+          "url": "https://releases.hashicorp.com/terraform/1.12.1/terraform_1.12.1_solaris_amd64.zip",
+          "version": "1.12.1"
+        },
+        {
+          "arch": "386",
+          "filename": "terraform_1.12.1_windows_386.zip",
+          "name": "terraform",
+          "os": "windows",
+          "url": "https://releases.hashicorp.com/terraform/1.12.1/terraform_1.12.1_windows_386.zip",
+          "version": "1.12.1"
+        },
+        {
+          "arch": "amd64",
+          "filename": "terraform_1.12.1_windows_amd64.zip",
+          "name": "terraform",
+          "os": "windows",
+          "url": "https://releases.hashicorp.com/terraform/1.12.1/terraform_1.12.1_windows_amd64.zip",
+          "version": "1.12.1"
+        }
+      ],
+      "name": "terraform",
+      "shasums": "terraform_1.12.1_SHA256SUMS",
+      "shasums_signature": "terraform_1.12.1_SHA256SUMS.sig",
+      "shasums_signatures": [
+        "terraform_1.12.1_SHA256SUMS.72D7468F.sig",
+        "terraform_1.12.1_SHA256SUMS.sig"
+      ],
+      "version": "1.12.1"
+    },
+    "1.12.0rc2": {
+      "builds": [
+        {
+          "arch": "amd64",
+          "filename": "terraform_1.12.0-rc2_darwin_amd64.zip",
+          "name": "terraform",
+          "os": "darwin",
+          "url": "https://releases.hashicorp.com/terraform/1.12.0-rc2/terraform_1.12.0-rc2_darwin_amd64.zip",
+          "version": "1.12.0-rc2"
+        },
+        {
+          "arch": "arm64",
+          "filename": "terraform_1.12.0-rc2_darwin_arm64.zip",
+          "name": "terraform",
+          "os": "darwin",
+          "url": "https://releases.hashicorp.com/terraform/1.12.0-rc2/terraform_1.12.0-rc2_darwin_arm64.zip",
+          "version": "1.12.0-rc2"
+        },
+        {
+          "arch": "386",
+          "filename": "terraform_1.12.0-rc2_freebsd_386.zip",
+          "name": "terraform",
+          "os": "freebsd",
+          "url": "https://releases.hashicorp.com/terraform/1.12.0-rc2/terraform_1.12.0-rc2_freebsd_386.zip",
+          "version": "1.12.0-rc2"
+        },
+        {
+          "arch": "amd64",
+          "filename": "terraform_1.12.0-rc2_freebsd_amd64.zip",
+          "name": "terraform",
+          "os": "freebsd",
+          "url": "https://releases.hashicorp.com/terraform/1.12.0-rc2/terraform_1.12.0-rc2_freebsd_amd64.zip",
+          "version": "1.12.0-rc2"
+        },
+        {
+          "arch": "arm",
+          "filename": "terraform_1.12.0-rc2_freebsd_arm.zip",
+          "name": "terraform",
+          "os": "freebsd",
+          "url": "https://releases.hashicorp.com/terraform/1.12.0-rc2/terraform_1.12.0-rc2_freebsd_arm.zip",
+          "version": "1.12.0-rc2"
+        },
+        {
+          "arch": "386",
+          "filename": "terraform_1.12.0-rc2_linux_386.zip",
+          "name": "terraform",
+          "os": "linux",
+          "url": "https://releases.hashicorp.com/terraform/1.12.0-rc2/terraform_1.12.0-rc2_linux_386.zip",
+          "version": "1.12.0-rc2"
+        },
+        {
+          "arch": "amd64",
+          "filename": "terraform_1.12.0-rc2_linux_amd64.zip",
+          "name": "terraform",
+          "os": "linux",
+          "url": "https://releases.hashicorp.com/terraform/1.12.0-rc2/terraform_1.12.0-rc2_linux_amd64.zip",
+          "version": "1.12.0-rc2"
+        },
+        {
+          "arch": "arm",
+          "filename": "terraform_1.12.0-rc2_linux_arm.zip",
+          "name": "terraform",
+          "os": "linux",
+          "url": "https://releases.hashicorp.com/terraform/1.12.0-rc2/terraform_1.12.0-rc2_linux_arm.zip",
+          "version": "1.12.0-rc2"
+        },
+        {
+          "arch": "arm64",
+          "filename": "terraform_1.12.0-rc2_linux_arm64.zip",
+          "name": "terraform",
+          "os": "linux",
+          "url": "https://releases.hashicorp.com/terraform/1.12.0-rc2/terraform_1.12.0-rc2_linux_arm64.zip",
+          "version": "1.12.0-rc2"
+        },
+        {
+          "arch": "386",
+          "filename": "terraform_1.12.0-rc2_openbsd_386.zip",
+          "name": "terraform",
+          "os": "openbsd",
+          "url": "https://releases.hashicorp.com/terraform/1.12.0-rc2/terraform_1.12.0-rc2_openbsd_386.zip",
+          "version": "1.12.0-rc2"
+        },
+        {
+          "arch": "amd64",
+          "filename": "terraform_1.12.0-rc2_openbsd_amd64.zip",
+          "name": "terraform",
+          "os": "openbsd",
+          "url": "https://releases.hashicorp.com/terraform/1.12.0-rc2/terraform_1.12.0-rc2_openbsd_amd64.zip",
+          "version": "1.12.0-rc2"
+        },
+        {
+          "arch": "amd64",
+          "filename": "terraform_1.12.0-rc2_solaris_amd64.zip",
+          "name": "terraform",
+          "os": "solaris",
+          "url": "https://releases.hashicorp.com/terraform/1.12.0-rc2/terraform_1.12.0-rc2_solaris_amd64.zip",
+          "version": "1.12.0-rc2"
+        },
+        {
+          "arch": "386",
+          "filename": "terraform_1.12.0-rc2_windows_386.zip",
+          "name": "terraform",
+          "os": "windows",
+          "url": "https://releases.hashicorp.com/terraform/1.12.0-rc2/terraform_1.12.0-rc2_windows_386.zip",
+          "version": "1.12.0-rc2"
+        },
+        {
+          "arch": "amd64",
+          "filename": "terraform_1.12.0-rc2_windows_amd64.zip",
+          "name": "terraform",
+          "os": "windows",
+          "url": "https://releases.hashicorp.com/terraform/1.12.0-rc2/terraform_1.12.0-rc2_windows_amd64.zip",
+          "version": "1.12.0-rc2"
+        }
+      ],
+      "name": "terraform",
+      "shasums": "terraform_1.12.0-rc2_SHA256SUMS",
+      "shasums_signature": "terraform_1.12.0-rc2_SHA256SUMS.sig",
+      "shasums_signatures": [
+        "terraform_1.12.0-rc2_SHA256SUMS.72D7468F.sig",
+        "terraform_1.12.0-rc2_SHA256SUMS.sig"
+      ],
+      "version": "1.12.0-rc2"
+    }
+  }
+}

@@ -47,7 +47,7 @@ jobs:
       stable: ${{ steps.stable.outputs.go-version }}
 
   build:
-    name: build (go ${{ matrix.go_version }})
+    name: Build
     needs:
       - resolve-versions
     runs-on: ubuntu-latest
@@ -82,7 +82,7 @@ jobs:
         go build -v .
 
   test:
-    name: tests (${{ matrix.os }}, go ${{ matrix.go_version }})
+    name: Tests
     needs:
       - build
       - resolve-versions

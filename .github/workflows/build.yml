@@ -33,6 +33,8 @@ jobs:
       - name: Set Product version
         id: set-product-version
         uses: hashicorp/actions-set-product-version@2ec1b51402b3070bccf7ca95306afbd039e574ff # v2.0.1
+        with:
+          checkout: false
 
   generate-metadata-file:
     needs: set-product-version

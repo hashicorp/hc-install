@@ -35,13 +35,13 @@ jobs:
         id: oldstable
         uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
         with:
-          go-version: oldstable
+          go-version: 1.25.x
       -
         name: Resolve stable version
         id: stable
         uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
         with:
-          go-version: stable
+          go-version: 1.26.0 # pinned until 1.26.2 is out (https://github.com/golang/go/issues/78015)
     outputs:
       oldstable: ${{ steps.oldstable.outputs.go-version }}
       stable: ${{ steps.stable.outputs.go-version }}

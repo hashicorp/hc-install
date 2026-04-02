@@ -57,7 +57,7 @@ func TestLatestVersion(t *testing.T) {
 }
 
 func TestLatestVersion_basic(t *testing.T) {
-	mockApiRoot := filepath.Join("testdata", "mock_api_tf_0_14_with_prereleases")
+	mockApiRoot := filepath.Join("testdata", "mock_api_tf_1_12_with_prereleases")
 	lv := &LatestVersion{
 		Product:          product.Terraform,
 		ArmoredPublicKey: getTestPubKey(t),
@@ -78,7 +78,7 @@ func TestLatestVersion_basic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expectedVersion, err := version.NewVersion("0.14.11")
+	expectedVersion, err := version.NewVersion("1.12.1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,7 +89,7 @@ func TestLatestVersion_basic(t *testing.T) {
 }
 
 func TestLatestVersion_prereleases(t *testing.T) {
-	mockApiRoot := filepath.Join("testdata", "mock_api_tf_0_14_with_prereleases")
+	mockApiRoot := filepath.Join("testdata", "mock_api_tf_1_12_with_prereleases")
 
 	lv := &LatestVersion{
 		Product:            product.Terraform,
@@ -112,7 +112,7 @@ func TestLatestVersion_prereleases(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expectedVersion, err := version.NewVersion("0.15.0-rc2")
+	expectedVersion, err := version.NewVersion("1.12.0-rc2")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -167,7 +167,7 @@ func TestExactVersion(t *testing.T) {
 }
 
 func BenchmarkExactVersion(b *testing.B) {
-	mockApiRoot := filepath.Join("testdata", "mock_api_tf_0_14_with_prereleases")
+	mockApiRoot := filepath.Join("testdata", "mock_api_tf_1_12_with_prereleases")
 
 	for i := 0; i < b.N; i++ {
 		installDir, err := os.MkdirTemp("", fmt.Sprintf("%s_%d", "terraform", i))
@@ -177,7 +177,7 @@ func BenchmarkExactVersion(b *testing.B) {
 
 		ev := &ExactVersion{
 			Product:          product.Terraform,
-			Version:          version.Must(version.NewVersion("0.14.11")),
+			Version:          version.Must(version.NewVersion("1.12.1")),
 			ArmoredPublicKey: getTestPubKey(b),
 			ApiBaseURL:       testutil.NewTestServer(b, mockApiRoot).URL,
 			InstallDir:       installDir,

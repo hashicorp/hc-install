@@ -27,6 +27,12 @@ type Versions struct {
 
 	// Install represents configuration for installation of any listed version
 	Install InstallationOptions
+
+	// ApiBaseURL is an optional base URL for the releases API (e.g. a mirror of
+	// https://releases.hashicorp.com). When set, version listing and returned
+	// ExactVersion installables use this base; the mirror must expose the same
+	// layout as the official site (including per-product index.json files).
+	ApiBaseURL string
 }
 
 type InstallationOptions struct {
@@ -59,6 +65,9 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 	defer cancelFunc()
 
 	r := rjson.NewReleases()
+	if v.ApiBaseURL != "" {
+		r.BaseURL = v.ApiBaseURL
+	}
 	pvs, err := r.ListProductVersions(ctx, v.Product.Name)
 	if err != nil {
 		return nil, err
@@ -88,6 +97,7 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 			Timeout:    v.Install.Timeout,
 			LicenseDir: v.Install.LicenseDir,
 
+			ApiBaseURL:               v.ApiBaseURL,
 			ArmoredPublicKey:         v.Install.ArmoredPublicKey,
 			SkipChecksumVerification: v.Install.SkipChecksumVerification,
 		}

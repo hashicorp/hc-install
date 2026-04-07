@@ -5,6 +5,8 @@ package releases
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -13,6 +15,64 @@ import (
 	"github.com/hashicorp/hc-install/product"
 	"github.com/hashicorp/hc-install/src"
 )
+
+func TestVersions_List_ApiBaseURL(t *testing.T) {
+	t.Parallel()
+
+	const indexBody = `{
+  "name": "terraform",
+  "versions": {
+    "1.9.2": {
+      "name": "terraform",
+      "version": "1.9.2",
+      "builds": []
+    },
+    "1.9.3": {
+      "name": "terraform",
+      "version": "1.9.3",
+      "builds": []
+    }
+  }
+}`
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/terraform/index.json" {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("content-type", "application/json")
+		_, _ = w.Write([]byte(indexBody))
+	}))
+	t.Cleanup(srv.Close)
+
+	cons, err := version.NewConstraint("= 1.9.3")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	versions := &Versions{
+		Product:     product.Terraform,
+		Constraints: cons,
+		ApiBaseURL:  srv.URL,
+	}
+
+	ctx := context.Background()
+	sources, err := versions.List(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(sources) != 1 {
+		t.Fatalf("expected 1 source, got %d", len(sources))
+	}
+	ev := sources[0].(*ExactVersion)
+	if ev.Version.String() != "1.9.3" {
+		t.Fatalf("expected version 1.9.3, got %q", ev.Version.String())
+	}
+	if ev.ApiBaseURL != srv.URL {
+		t.Fatalf("expected ExactVersion ApiBaseURL %q, got %q", srv.URL, ev.ApiBaseURL)
+	}
+}
 
 func TestVersions_List(t *testing.T) {
 	testutil.EndToEndTest(t)

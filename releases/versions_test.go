@@ -74,6 +74,90 @@ func TestVersions_List_ApiBaseURL(t *testing.T) {
 	}
 }
 
+func TestVersions_List_APIBearerAuth(t *testing.T) {
+	t.Parallel()
+
+	const (
+		wantToken = "super-secret"
+		indexBody = `{"name":"terraform","versions":{"1.9.3":{"name":"terraform","version":"1.9.3","builds":[]}}}`
+	)
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer "+wantToken {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		w.Header().Set("content-type", "application/json")
+		_, _ = w.Write([]byte(indexBody))
+	}))
+	t.Cleanup(srv.Close)
+
+	cons, err := version.NewConstraint("= 1.9.3")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	versions := &Versions{
+		Product:     product.Terraform,
+		Constraints: cons,
+		ApiBaseURL:  srv.URL,
+		Auth:  APIHTTPAuth{BearerToken: wantToken},
+	}
+
+	sources, err := versions.List(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(sources) != 1 {
+		t.Fatalf("expected 1 source, got %d", len(sources))
+	}
+	ev := sources[0].(*ExactVersion)
+	if ev.Auth.BearerToken != wantToken {
+		t.Fatalf("expected ExactVersion BearerToken %q, got %q", wantToken, ev.Auth.BearerToken)
+	}
+}
+
+func TestVersions_List_MirrorBasicAuth(t *testing.T) {
+	t.Parallel()
+
+	const (
+		wantUser     = "user"
+		wantPassword = "pass"
+		indexBody    = `{"name":"terraform","versions":{"1.9.3":{"name":"terraform","version":"1.9.3","builds":[]}}}`
+	)
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		u, p, ok := r.BasicAuth()
+		if !ok || u != wantUser || p != wantPassword {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		w.Header().Set("content-type", "application/json")
+		_, _ = w.Write([]byte(indexBody))
+	}))
+	t.Cleanup(srv.Close)
+
+	cons, err := version.NewConstraint("= 1.9.3")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	versions := &Versions{
+		Product:     product.Terraform,
+		Constraints: cons,
+		ApiBaseURL:  srv.URL,
+		Auth:  APIHTTPAuth{Username: wantUser, Password: wantPassword},
+	}
+
+	sources, err := versions.List(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(sources) != 1 {
+		t.Fatalf("expected 1 source, got %d", len(sources))
+	}
+}
+
 func TestVersions_List(t *testing.T) {
 	testutil.EndToEndTest(t)
 

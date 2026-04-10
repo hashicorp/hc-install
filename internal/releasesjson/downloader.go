@@ -26,6 +26,20 @@ type Downloader struct {
 	VerifyChecksum   bool
 	ArmoredPublicKey string
 	BaseURL          string
+
+	APIUser     string
+	APIPassword string
+	APIBearer   string
+}
+
+func (d *Downloader) applyAuth(req *http.Request) {
+	if d.APIBearer != "" {
+		req.Header.Set("Authorization", "Bearer "+d.APIBearer)
+		return
+	}
+	if d.APIUser != "" {
+		req.SetBasicAuth(d.APIUser, d.APIPassword)
+	}
 }
 
 type UnpackedProduct struct {
@@ -50,6 +64,9 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 			ProductVersion:   pv,
 			Logger:           d.Logger,
 			ArmoredPublicKey: d.ArmoredPublicKey,
+			APIUser:       d.APIUser,
+			APIPassword:   d.APIPassword,
+			APIBearer:     d.APIBearer,
 		}
 		verifiedChecksums, err := v.DownloadAndVerifyChecksums(ctx)
 		if err != nil {
@@ -75,6 +92,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", archiveURL, err)
 	}
+	d.applyAuth(req)
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

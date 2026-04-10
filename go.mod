@@ -10,9 +10,9 @@ require (
 	github.com/hashicorp/go-checkpoint v0.5.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-retryablehttp v0.7.8
-	github.com/hashicorp/go-version v1.8.0
+	github.com/hashicorp/go-version v1.9.0
 	github.com/hashicorp/logutils v1.0.0
-	golang.org/x/mod v0.34.0
+	golang.org/x/mod v0.35.0
 )
 
 require (

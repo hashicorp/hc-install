@@ -128,7 +128,7 @@ func (gb *GoBuild) ensureRequiredGoVersion(ctx context.Context, repoDir string) 
 		installedVersion = goVersion
 	}
 
-	if requiredVersion, ok := guessRequiredGoVersion(repoDir); ok {
+	if requiredVersion, ok := gb.guessRequiredGoVersion(repoDir); ok {
 		gb.logger.Printf("attempting to satisfy guessed Go requirement %s", requiredVersion)
 		goVersion, err := GetGoVersion(ctx)
 		if err != nil {
@@ -158,7 +158,7 @@ func (gb *GoBuild) ensureRequiredGoVersion(ctx context.Context, repoDir string) 
 // e.g. to remove any version installed temporarily per requirements
 type CleanupFunc func(context.Context)
 
-func guessRequiredGoVersion(repoDir string) (*version.Version, bool) {
+func (gb *GoBuild) guessRequiredGoVersion(repoDir string) (*version.Version, bool) {
 	goEnvFile := filepath.Join(repoDir, ".go-version")
 	if fi, err := os.Stat(goEnvFile); err == nil && !fi.IsDir() {
 		b, err := os.ReadFile(goEnvFile)
@@ -169,6 +169,7 @@ func guessRequiredGoVersion(repoDir string) (*version.Version, bool) {
 		if err != nil {
 			return nil, false
 		}
+		gb.logger.Printf("found Go version %s in .go-version", requiredVersion)
 		return requiredVersion, true
 	}
 
@@ -189,6 +190,7 @@ func guessRequiredGoVersion(repoDir string) (*version.Version, bool) {
 		if err != nil {
 			return nil, false
 		}
+		gb.logger.Printf("found Go version %s in go.mod", requiredVersion)
 		return requiredVersion, true
 	}
 

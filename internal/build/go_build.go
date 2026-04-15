@@ -159,6 +159,39 @@ func (gb *GoBuild) ensureRequiredGoVersion(ctx context.Context, repoDir string) 
 type CleanupFunc func(context.Context)
 
 func (gb *GoBuild) guessRequiredGoVersion(repoDir string) (*version.Version, bool) {
+	goEnvVersion, goEnvFound := readGoEnvVersion(repoDir)
+	if goEnvFound {
+		gb.logger.Printf("found Go version %s in .go-version", goEnvVersion)
+	}
+
+	goModVersion, goModFound := readGoModVersion(repoDir)
+	if goModFound {
+		gb.logger.Printf("found Go version %s in go.mod", goModVersion)
+	}
+
+	// unlikely case for modern Go codebases of go.mod missing
+	if !goModFound && goEnvFound {
+		return goEnvVersion, true
+	}
+
+	if goModFound && !goEnvFound {
+		return goModVersion, true
+	}
+
+	if goEnvFound && goModFound {
+		// only use .go-version if it's compatible with go.mod
+		if goEnvVersion.GreaterThanOrEqual(goModVersion) {
+			return goEnvVersion, true
+		}
+		gb.logger.Printf("found Go versions mismatch (.go-version: %s, go.mod: %s), choosing go.mod (%s)",
+			goEnvVersion, goModVersion, goModVersion)
+		return goModVersion, true
+	}
+
+	return nil, false
+}
+
+func readGoEnvVersion(repoDir string) (*version.Version, bool) {
 	goEnvFile := filepath.Join(repoDir, ".go-version")
 	if fi, err := os.Stat(goEnvFile); err == nil && !fi.IsDir() {
 		b, err := os.ReadFile(goEnvFile)
@@ -169,10 +202,12 @@ func (gb *GoBuild) guessRequiredGoVersion(repoDir string) (*version.Version, boo
 		if err != nil {
 			return nil, false
 		}
-		gb.logger.Printf("found Go version %s in .go-version", requiredVersion)
 		return requiredVersion, true
 	}
+	return nil, false
+}
 
+func readGoModVersion(repoDir string) (*version.Version, bool) {
 	goModFile := filepath.Join(repoDir, "go.mod")
 	if fi, err := os.Stat(goModFile); err == nil && !fi.IsDir() {
 		b, err := os.ReadFile(goModFile)
@@ -190,9 +225,7 @@ func (gb *GoBuild) guessRequiredGoVersion(repoDir string) (*version.Version, boo
 		if err != nil {
 			return nil, false
 		}
-		gb.logger.Printf("found Go version %s in go.mod", requiredVersion)
 		return requiredVersion, true
 	}
-
 	return nil, false
 }

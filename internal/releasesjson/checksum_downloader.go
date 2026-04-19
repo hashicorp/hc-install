@@ -194,5 +194,115 @@ func (cd *ChecksumDownloader) keyEntityList() (openpgp.EntityList, error) {
 	if cd.ArmoredPublicKey == "" {
 		return nil, fmt.Errorf("no public key provided")
 	}
-	return openpgp.ReadArmoredKeyRing(strings.NewReader(cd.ArmoredPublicKey))
+	// ArmoredPublicKey may contain more than one concatenated armored block
+	// (e.g. an original key plus a block with refreshed self-signatures).
+	// openpgp.ReadArmoredKeyRing only decodes the first block, so split the
+	// input, parse each block independently, and merge entities that share a
+	// primary key so the newest self-signatures win.
+	var entities openpgp.EntityList
+	for _, block := range splitArmoredBlocks(cd.ArmoredPublicKey) {
+		part, err := openpgp.ReadArmoredKeyRing(strings.NewReader(block))
+		if err != nil {
+			return nil, err
+		}
+		entities = append(entities, part...)
+	}
+	if len(entities) == 0 {
+		return nil, fmt.Errorf("no keys found in armored data")
+	}
+	return mergeEntitiesByPrimaryKey(entities), nil
+}
+
+// mergeEntitiesByPrimaryKey collapses entities that share a primary key into
+// one, keeping the most recent identity self-signature and subkey binding
+// signature. This lets a refreshed armored block supersede the self-signatures
+// of an older block that repeats the same primary key.
+func mergeEntitiesByPrimaryKey(entities openpgp.EntityList) openpgp.EntityList {
+	merged := make(map[string]*openpgp.Entity, len(entities))
+	order := make([]string, 0, len(entities))
+	for _, e := range entities {
+		fpr := string(e.PrimaryKey.Fingerprint)
+		existing, ok := merged[fpr]
+		if !ok {
+			merged[fpr] = e
+			order = append(order, fpr)
+			continue
+		}
+		mergeEntity(existing, e)
+	}
+	out := make(openpgp.EntityList, 0, len(order))
+	for _, fpr := range order {
+		out = append(out, merged[fpr])
+	}
+	return out
+}
+
+func mergeEntity(dst, src *openpgp.Entity) {
+	for name, srcID := range src.Identities {
+		dstID, ok := dst.Identities[name]
+		if !ok {
+			dst.Identities[name] = srcID
+			continue
+		}
+		if srcID.SelfSignature != nil &&
+			(dstID.SelfSignature == nil ||
+				srcID.SelfSignature.CreationTime.After(dstID.SelfSignature.CreationTime)) {
+			dstID.SelfSignature = srcID.SelfSignature
+		}
+		dstID.Signatures = append(dstID.Signatures, srcID.Signatures...)
+		dstID.Revocations = append(dstID.Revocations, srcID.Revocations...)
+	}
+	for _, srcSK := range src.Subkeys {
+		matched := false
+		for i := range dst.Subkeys {
+			if dst.Subkeys[i].PublicKey.KeyId != srcSK.PublicKey.KeyId {
+				continue
+			}
+			matched = true
+			if srcSK.Sig != nil &&
+				(dst.Subkeys[i].Sig == nil ||
+					srcSK.Sig.CreationTime.After(dst.Subkeys[i].Sig.CreationTime)) {
+				dst.Subkeys[i].Sig = srcSK.Sig
+			}
+			dst.Subkeys[i].Revocations = append(dst.Subkeys[i].Revocations, srcSK.Revocations...)
+			break
+		}
+		if !matched {
+			dst.Subkeys = append(dst.Subkeys, srcSK)
+		}
+	}
+	dst.Revocations = append(dst.Revocations, src.Revocations...)
+}
+
+// splitArmoredBlocks returns each ASCII-armored block in s as a separate
+// string. It tolerates leading/trailing whitespace and ignores any content
+// outside BEGIN/END markers.
+func splitArmoredBlocks(s string) []string {
+	const beginMarker = "-----BEGIN "
+	const endMarker = "-----END "
+	const endOfLine = "-----"
+
+	var blocks []string
+	for {
+		beginIdx := strings.Index(s, beginMarker)
+		if beginIdx == -1 {
+			break
+		}
+		rest := s[beginIdx:]
+		// Find the end marker after the begin.
+		endIdx := strings.Index(rest, endMarker)
+		if endIdx == -1 {
+			break
+		}
+		// Advance past the end marker line (to the next "-----" closing the line).
+		tail := rest[endIdx+len(endMarker):]
+		closeIdx := strings.Index(tail, endOfLine)
+		if closeIdx == -1 {
+			break
+		}
+		blockEnd := endIdx + len(endMarker) + closeIdx + len(endOfLine)
+		blocks = append(blocks, rest[:blockEnd])
+		s = rest[blockEnd:]
+	}
+	return blocks
 }

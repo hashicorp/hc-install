@@ -125,6 +125,8 @@ func TestLatestVersion_prereleases(t *testing.T) {
 func TestExactVersion(t *testing.T) {
 	testutil.EndToEndTest(t)
 
+	// Keep this pinned to < 1.15 to ensure we can install version
+	// that was definitely signed with the key which expired 2026-04-18
 	versionToInstall := version.Must(version.NewVersion("1.8.2"))
 	ev := &ExactVersion{
 		Product: product.Terraform,

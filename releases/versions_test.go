@@ -101,7 +101,7 @@ func TestVersions_List_APIBearerAuth(t *testing.T) {
 		Product:     product.Terraform,
 		Constraints: cons,
 		ApiBaseURL:  srv.URL,
-		Auth:  APIHTTPAuth{BearerToken: wantToken},
+		Auth:        APIHTTPAuth{BearerToken: wantToken},
 	}
 
 	sources, err := versions.List(context.Background())
@@ -146,7 +146,7 @@ func TestVersions_List_MirrorBasicAuth(t *testing.T) {
 		Product:     product.Terraform,
 		Constraints: cons,
 		ApiBaseURL:  srv.URL,
-		Auth:  APIHTTPAuth{Username: wantUser, Password: wantPassword},
+		Auth:        APIHTTPAuth{Username: wantUser, Password: wantPassword},
 	}
 
 	sources, err := versions.List(context.Background())

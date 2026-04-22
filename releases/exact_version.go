@@ -48,7 +48,7 @@ type ExactVersion struct {
 	// Auth holds optional credentials for authenticating against a
 	// custom releases mirror (see ApiBaseURL). Bearer token takes precedence
 	// over basic auth when both are set.
-	Auth    APIHTTPAuth
+	Auth          APIHTTPAuth
 	logger        *log.Logger
 	pathsToRemove []string
 }
@@ -133,9 +133,9 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		VerifyChecksum:   !ev.SkipChecksumVerification,
 		ArmoredPublicKey: pubkey.DefaultPublicKey,
 		BaseURL:          rels.BaseURL,
-		APIUser:       ev.Auth.Username,
-		APIPassword:   ev.Auth.Password,
-		APIBearer:     ev.Auth.BearerToken,
+		APIUser:          ev.Auth.Username,
+		APIPassword:      ev.Auth.Password,
+		APIBearer:        ev.Auth.BearerToken,
 	}
 	if ev.ArmoredPublicKey != "" {
 		d.ArmoredPublicKey = ev.ArmoredPublicKey

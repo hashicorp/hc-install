@@ -64,9 +64,9 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 			ProductVersion:   pv,
 			Logger:           d.Logger,
 			ArmoredPublicKey: d.ArmoredPublicKey,
-			APIUser:       d.APIUser,
-			APIPassword:   d.APIPassword,
-			APIBearer:     d.APIBearer,
+			APIUser:          d.APIUser,
+			APIPassword:      d.APIPassword,
+			APIBearer:        d.APIBearer,
 		}
 		verifiedChecksums, err := v.DownloadAndVerifyChecksums(ctx)
 		if err != nil {

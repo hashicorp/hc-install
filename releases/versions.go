@@ -104,7 +104,7 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 			LicenseDir: v.Install.LicenseDir,
 
 			ApiBaseURL:               v.ApiBaseURL,
-			Auth:               v.Auth,
+			Auth:                     v.Auth,
 			ArmoredPublicKey:         v.Install.ArmoredPublicKey,
 			SkipChecksumVerification: v.Install.SkipChecksumVerification,
 		}

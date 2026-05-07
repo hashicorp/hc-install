@@ -43,7 +43,12 @@ type ExactVersion struct {
 	// ApiBaseURL is an optional field that specifies a custom URL to download the product from.
 	// If ApiBaseURL is set, the product will be downloaded from this base URL instead of the default site.
 	// Note: The directory structure of the custom URL must match the HashiCorp releases site (including the index.json files).
-	ApiBaseURL    string
+	ApiBaseURL string
+
+	// Auth holds optional credentials for authenticating against a
+	// custom releases mirror (see ApiBaseURL). Bearer token takes precedence
+	// over basic auth when both are set.
+	Auth          APIHTTPAuth
 	logger        *log.Logger
 	pathsToRemove []string
 }
@@ -113,6 +118,7 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		rels.BaseURL = ev.ApiBaseURL
 	}
 	rels.SetLogger(ev.log())
+	rels.ConfigureAuth(ev.Auth.Username, ev.Auth.Password, ev.Auth.BearerToken)
 	installVersion := ev.Version
 	if ev.Enterprise != nil {
 		installVersion = versionWithMetadata(installVersion, enterpriseVersionMetadata(ev.Enterprise))
@@ -127,6 +133,9 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		VerifyChecksum:   !ev.SkipChecksumVerification,
 		ArmoredPublicKey: pubkey.DefaultPublicKey,
 		BaseURL:          rels.BaseURL,
+		APIUser:          ev.Auth.Username,
+		APIPassword:      ev.Auth.Password,
+		APIBearer:        ev.Auth.BearerToken,
 	}
 	if ev.ArmoredPublicKey != "" {
 		d.ArmoredPublicKey = ev.ArmoredPublicKey

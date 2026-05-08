@@ -12,9 +12,9 @@ new test data without having to generate a new key.
 
 ```
 cd ./terraform
-export VERSION=0.14.11
+export VERSION=1.12.1
 gpg --import ../2FCA0A85.private.asc
-goreleaser release --snapshot --rm-dist
+goreleaser release --snapshot --clean
 mkdir -p ../mock_terraform_builds/${VERSION}
 mv ./dist/terraform_${VERSION}_* ../mock_terraform_builds/${VERSION}/
 ```

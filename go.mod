@@ -3,7 +3,7 @@ module github.com/hashicorp/hc-install
 // Keep last digit at zero, use toolchain for Go build requirement
 go 1.25.0
 
-toolchain go1.25.8
+toolchain go1.25.10
 
 require (
 	github.com/ProtonMail/go-crypto v1.4.1

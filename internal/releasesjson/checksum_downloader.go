@@ -24,6 +24,20 @@ type ChecksumDownloader struct {
 	ArmoredPublicKey string
 
 	BaseURL string
+
+	APIUser     string
+	APIPassword string
+	APIBearer   string
+}
+
+func (cd *ChecksumDownloader) applyAuth(req *http.Request) {
+	if cd.APIBearer != "" {
+		req.Header.Set("Authorization", "Bearer "+cd.APIBearer)
+		return
+	}
+	if cd.APIUser != "" {
+		req.SetBasicAuth(cd.APIUser, cd.APIPassword)
+	}
 }
 
 type ChecksumFileMap map[string]HashSum
@@ -63,6 +77,7 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums(ctx context.Context) (C
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", sigURL, err)
 	}
+	cd.applyAuth(req)
 	sigResp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -84,6 +99,7 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums(ctx context.Context) (C
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", shasumsURL, err)
 	}
+	cd.applyAuth(req)
 	sumsResp, err := client.Do(req)
 	if err != nil {
 		return nil, err

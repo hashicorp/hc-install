@@ -24,6 +24,12 @@ type ChecksumDownloader struct {
 	ArmoredPublicKey string
 
 	BaseURL string
+
+	// Transport, if set, wraps hc-install's default HTTP transport for every
+	// request made against BaseURL, allowing callers to customize outgoing
+	// requests (e.g. to add authentication headers required by a private
+	// mirror).
+	Transport func(http.RoundTripper) http.RoundTripper
 }
 
 type ChecksumFileMap map[string]HashSum
@@ -52,7 +58,7 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums(ctx context.Context) (C
 		return nil, err
 	}
 
-	client := httpclient.NewHTTPClient(cd.Logger)
+	client := httpclient.NewHTTPClient(cd.Logger, cd.Transport)
 	sigURL := fmt.Sprintf("%s/%s/%s/%s", cd.BaseURL,
 		url.PathEscape(cd.ProductVersion.Name),
 		url.PathEscape(cd.ProductVersion.Version.String()),

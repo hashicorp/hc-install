@@ -26,6 +26,12 @@ type Downloader struct {
 	VerifyChecksum   bool
 	ArmoredPublicKey string
 	BaseURL          string
+
+	// Transport, if set, wraps hc-install's default HTTP transport for every
+	// request made against BaseURL, allowing callers to customize outgoing
+	// requests (e.g. to add authentication headers required by a private
+	// mirror).
+	Transport func(http.RoundTripper) http.RoundTripper
 }
 
 type UnpackedProduct struct {
@@ -50,6 +56,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 			ProductVersion:   pv,
 			Logger:           d.Logger,
 			ArmoredPublicKey: d.ArmoredPublicKey,
+			Transport:        d.Transport,
 		}
 		verifiedChecksums, err := v.DownloadAndVerifyChecksums(ctx)
 		if err != nil {
@@ -62,7 +69,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 		}
 	}
 
-	client := httpclient.NewHTTPClient(d.Logger)
+	client := httpclient.NewHTTPClient(d.Logger, d.Transport)
 
 	archiveURL, err := determineArchiveURL(pb.URL, d.BaseURL)
 	if err != nil {

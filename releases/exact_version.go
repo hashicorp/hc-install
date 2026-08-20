@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -43,7 +44,14 @@ type ExactVersion struct {
 	// ApiBaseURL is an optional field that specifies a custom URL to download the product from.
 	// If ApiBaseURL is set, the product will be downloaded from this base URL instead of the default site.
 	// Note: The directory structure of the custom URL must match the HashiCorp releases site (including the index.json files).
-	ApiBaseURL    string
+	ApiBaseURL string
+
+	// Transport, if set, wraps hc-install's default HTTP transport for
+	// requests made against ApiBaseURL, allowing callers to customize
+	// outgoing requests -- for example to inject authentication headers
+	// required by a private mirror.
+	Transport func(http.RoundTripper) http.RoundTripper
+
 	logger        *log.Logger
 	pathsToRemove []string
 }
@@ -113,6 +121,7 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		rels.BaseURL = ev.ApiBaseURL
 	}
 	rels.SetLogger(ev.log())
+	rels.Transport = ev.Transport
 	installVersion := ev.Version
 	if ev.Enterprise != nil {
 		installVersion = versionWithMetadata(installVersion, enterpriseVersionMetadata(ev.Enterprise))
@@ -127,6 +136,7 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		VerifyChecksum:   !ev.SkipChecksumVerification,
 		ArmoredPublicKey: pubkey.DefaultPublicKey,
 		BaseURL:          rels.BaseURL,
+		Transport:        ev.Transport,
 	}
 	if ev.ArmoredPublicKey != "" {
 		d.ArmoredPublicKey = ev.ArmoredPublicKey

@@ -6,6 +6,7 @@ package releases
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sort"
 	"time"
 
@@ -27,6 +28,19 @@ type Versions struct {
 
 	// Install represents configuration for installation of any listed version
 	Install InstallationOptions
+
+	// ApiBaseURL is an optional base URL for the releases API (e.g. a mirror of
+	// https://releases.hashicorp.com). When set, version listing and returned
+	// ExactVersion installables use this base; the mirror must expose the same
+	// layout as the official site (including per-product index.json files).
+	ApiBaseURL string
+
+	// Transport, if set, wraps hc-install's default HTTP transport for
+	// requests made while listing versions, allowing callers to customize
+	// outgoing requests -- for example to inject authentication headers
+	// required by a private mirror. It is propagated to every ExactVersion
+	// returned by List so that installs use the same transport.
+	Transport func(http.RoundTripper) http.RoundTripper
 }
 
 type InstallationOptions struct {
@@ -59,6 +73,10 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 	defer cancelFunc()
 
 	r := rjson.NewReleases()
+	if v.ApiBaseURL != "" {
+		r.BaseURL = v.ApiBaseURL
+	}
+	r.Transport = v.Transport
 	pvs, err := r.ListProductVersions(ctx, v.Product.Name)
 	if err != nil {
 		return nil, err
@@ -88,6 +106,8 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 			Timeout:    v.Install.Timeout,
 			LicenseDir: v.Install.LicenseDir,
 
+			ApiBaseURL:               v.ApiBaseURL,
+			Transport:                v.Transport,
 			ArmoredPublicKey:         v.Install.ArmoredPublicKey,
 			SkipChecksumVerification: v.Install.SkipChecksumVerification,
 		}

@@ -51,6 +51,12 @@ type ProductBuild struct {
 type Releases struct {
 	logger  *log.Logger
 	BaseURL string
+
+	// Transport, if set, wraps hc-install's default HTTP transport for every
+	// request made against BaseURL, allowing callers to customize outgoing
+	// requests (e.g. to add authentication headers required by a private
+	// mirror).
+	Transport func(http.RoundTripper) http.RoundTripper
 }
 
 func NewReleases() *Releases {
@@ -65,7 +71,7 @@ func (r *Releases) SetLogger(logger *log.Logger) {
 }
 
 func (r *Releases) ListProductVersions(ctx context.Context, productName string) (ProductVersionsMap, error) {
-	client := httpclient.NewHTTPClient(r.logger)
+	client := httpclient.NewHTTPClient(r.logger, r.Transport)
 
 	productIndexURL := fmt.Sprintf("%s/%s/index.json",
 		r.BaseURL,
@@ -122,7 +128,7 @@ func (r *Releases) ListProductVersions(ctx context.Context, productName string) 
 }
 
 func (r *Releases) GetProductVersion(ctx context.Context, product string, version *version.Version) (*ProductVersion, error) {
-	client := httpclient.NewHTTPClient(r.logger)
+	client := httpclient.NewHTTPClient(r.logger, r.Transport)
 
 	indexURL := fmt.Sprintf("%s/%s/%s/index.json",
 		r.BaseURL,

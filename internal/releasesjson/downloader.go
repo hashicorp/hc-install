@@ -27,19 +27,11 @@ type Downloader struct {
 	ArmoredPublicKey string
 	BaseURL          string
 
-	APIUser     string
-	APIPassword string
-	APIBearer   string
-}
-
-func (d *Downloader) applyAuth(req *http.Request) {
-	if d.APIBearer != "" {
-		req.Header.Set("Authorization", "Bearer "+d.APIBearer)
-		return
-	}
-	if d.APIUser != "" {
-		req.SetBasicAuth(d.APIUser, d.APIPassword)
-	}
+	// Transport, if set, wraps hc-install's default HTTP transport for every
+	// request made against BaseURL, allowing callers to customize outgoing
+	// requests (e.g. to add authentication headers required by a private
+	// mirror).
+	Transport func(http.RoundTripper) http.RoundTripper
 }
 
 type UnpackedProduct struct {
@@ -64,9 +56,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 			ProductVersion:   pv,
 			Logger:           d.Logger,
 			ArmoredPublicKey: d.ArmoredPublicKey,
-			APIUser:          d.APIUser,
-			APIPassword:      d.APIPassword,
-			APIBearer:        d.APIBearer,
+			Transport:        d.Transport,
 		}
 		verifiedChecksums, err := v.DownloadAndVerifyChecksums(ctx)
 		if err != nil {
@@ -79,7 +69,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 		}
 	}
 
-	client := httpclient.NewHTTPClient(d.Logger)
+	client := httpclient.NewHTTPClient(d.Logger, d.Transport)
 
 	archiveURL, err := determineArchiveURL(pb.URL, d.BaseURL)
 	if err != nil {
@@ -92,7 +82,6 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", archiveURL, err)
 	}
-	d.applyAuth(req)
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

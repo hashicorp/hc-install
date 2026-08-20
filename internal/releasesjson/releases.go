@@ -52,9 +52,11 @@ type Releases struct {
 	logger  *log.Logger
 	BaseURL string
 
-	apiUser     string
-	apiPassword string
-	apiBearer   string
+	// Transport, if set, wraps hc-install's default HTTP transport for every
+	// request made against BaseURL, allowing callers to customize outgoing
+	// requests (e.g. to add authentication headers required by a private
+	// mirror).
+	Transport func(http.RoundTripper) http.RoundTripper
 }
 
 func NewReleases() *Releases {
@@ -68,27 +70,8 @@ func (r *Releases) SetLogger(logger *log.Logger) {
 	r.logger = logger
 }
 
-// ConfigureAuth sets optional credentials used for every HTTP request
-// when a custom BaseURL has been set. Bearer token takes precedence over basic
-// auth; pass empty strings to clear any previously set credentials.
-func (r *Releases) ConfigureAuth(username, password, bearerToken string) {
-	r.apiUser = username
-	r.apiPassword = password
-	r.apiBearer = bearerToken
-}
-
-func (r *Releases) applyAuth(req *http.Request) {
-	if r.apiBearer != "" {
-		req.Header.Set("Authorization", "Bearer "+r.apiBearer)
-		return
-	}
-	if r.apiUser != "" {
-		req.SetBasicAuth(r.apiUser, r.apiPassword)
-	}
-}
-
 func (r *Releases) ListProductVersions(ctx context.Context, productName string) (ProductVersionsMap, error) {
-	client := httpclient.NewHTTPClient(r.logger)
+	client := httpclient.NewHTTPClient(r.logger, r.Transport)
 
 	productIndexURL := fmt.Sprintf("%s/%s/index.json",
 		r.BaseURL,
@@ -99,7 +82,6 @@ func (r *Releases) ListProductVersions(ctx context.Context, productName string) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", productIndexURL, err)
 	}
-	r.applyAuth(req)
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -146,7 +128,7 @@ func (r *Releases) ListProductVersions(ctx context.Context, productName string) 
 }
 
 func (r *Releases) GetProductVersion(ctx context.Context, product string, version *version.Version) (*ProductVersion, error) {
-	client := httpclient.NewHTTPClient(r.logger)
+	client := httpclient.NewHTTPClient(r.logger, r.Transport)
 
 	indexURL := fmt.Sprintf("%s/%s/%s/index.json",
 		r.BaseURL,
@@ -158,7 +140,6 @@ func (r *Releases) GetProductVersion(ctx context.Context, product string, versio
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", indexURL, err)
 	}
-	r.applyAuth(req)
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

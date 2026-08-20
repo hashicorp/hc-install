@@ -6,6 +6,7 @@ package releases
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sort"
 	"time"
 
@@ -34,10 +35,12 @@ type Versions struct {
 	// layout as the official site (including per-product index.json files).
 	ApiBaseURL string
 
-	// Auth holds optional credentials for authenticating against a
-	// custom releases mirror (see ApiBaseURL). Propagated to every ExactVersion
-	// returned by List so that installs use the same credentials.
-	Auth APIHTTPAuth
+	// Transport, if set, wraps hc-install's default HTTP transport for
+	// requests made while listing versions, allowing callers to customize
+	// outgoing requests -- for example to inject authentication headers
+	// required by a private mirror. It is propagated to every ExactVersion
+	// returned by List so that installs use the same transport.
+	Transport func(http.RoundTripper) http.RoundTripper
 }
 
 type InstallationOptions struct {
@@ -73,7 +76,7 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 	if v.ApiBaseURL != "" {
 		r.BaseURL = v.ApiBaseURL
 	}
-	r.ConfigureAuth(v.Auth.Username, v.Auth.Password, v.Auth.BearerToken)
+	r.Transport = v.Transport
 	pvs, err := r.ListProductVersions(ctx, v.Product.Name)
 	if err != nil {
 		return nil, err
@@ -104,7 +107,7 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 			LicenseDir: v.Install.LicenseDir,
 
 			ApiBaseURL:               v.ApiBaseURL,
-			Auth:                     v.Auth,
+			Transport:                v.Transport,
 			ArmoredPublicKey:         v.Install.ArmoredPublicKey,
 			SkipChecksumVerification: v.Install.SkipChecksumVerification,
 		}

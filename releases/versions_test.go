@@ -74,7 +74,14 @@ func TestVersions_List_ApiBaseURL(t *testing.T) {
 	}
 }
 
-func TestVersions_List_APIBearerAuth(t *testing.T) {
+// roundTripperFunc lets a plain func satisfy http.RoundTripper.
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
+}
+
+func TestVersions_List_TransportBearerAuth(t *testing.T) {
 	t.Parallel()
 
 	const (
@@ -97,11 +104,18 @@ func TestVersions_List_APIBearerAuth(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	bearerTransport := func(next http.RoundTripper) http.RoundTripper {
+		return roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+			req.Header.Set("Authorization", "Bearer "+wantToken)
+			return next.RoundTrip(req)
+		})
+	}
+
 	versions := &Versions{
 		Product:     product.Terraform,
 		Constraints: cons,
 		ApiBaseURL:  srv.URL,
-		Auth:        APIHTTPAuth{BearerToken: wantToken},
+		Transport:   bearerTransport,
 	}
 
 	sources, err := versions.List(context.Background())
@@ -112,12 +126,12 @@ func TestVersions_List_APIBearerAuth(t *testing.T) {
 		t.Fatalf("expected 1 source, got %d", len(sources))
 	}
 	ev := sources[0].(*ExactVersion)
-	if ev.Auth.BearerToken != wantToken {
-		t.Fatalf("expected ExactVersion BearerToken %q, got %q", wantToken, ev.Auth.BearerToken)
+	if ev.Transport == nil {
+		t.Fatal("expected ExactVersion Transport to be propagated")
 	}
 }
 
-func TestVersions_List_MirrorBasicAuth(t *testing.T) {
+func TestVersions_List_TransportBasicAuth(t *testing.T) {
 	t.Parallel()
 
 	const (
@@ -142,11 +156,18 @@ func TestVersions_List_MirrorBasicAuth(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	basicAuthTransport := func(next http.RoundTripper) http.RoundTripper {
+		return roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+			req.SetBasicAuth(wantUser, wantPassword)
+			return next.RoundTrip(req)
+		})
+	}
+
 	versions := &Versions{
 		Product:     product.Terraform,
 		Constraints: cons,
 		ApiBaseURL:  srv.URL,
-		Auth:        APIHTTPAuth{Username: wantUser, Password: wantPassword},
+		Transport:   basicAuthTransport,
 	}
 
 	sources, err := versions.List(context.Background())

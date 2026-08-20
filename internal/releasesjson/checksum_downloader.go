@@ -25,19 +25,11 @@ type ChecksumDownloader struct {
 
 	BaseURL string
 
-	APIUser     string
-	APIPassword string
-	APIBearer   string
-}
-
-func (cd *ChecksumDownloader) applyAuth(req *http.Request) {
-	if cd.APIBearer != "" {
-		req.Header.Set("Authorization", "Bearer "+cd.APIBearer)
-		return
-	}
-	if cd.APIUser != "" {
-		req.SetBasicAuth(cd.APIUser, cd.APIPassword)
-	}
+	// Transport, if set, wraps hc-install's default HTTP transport for every
+	// request made against BaseURL, allowing callers to customize outgoing
+	// requests (e.g. to add authentication headers required by a private
+	// mirror).
+	Transport func(http.RoundTripper) http.RoundTripper
 }
 
 type ChecksumFileMap map[string]HashSum
@@ -66,7 +58,7 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums(ctx context.Context) (C
 		return nil, err
 	}
 
-	client := httpclient.NewHTTPClient(cd.Logger)
+	client := httpclient.NewHTTPClient(cd.Logger, cd.Transport)
 	sigURL := fmt.Sprintf("%s/%s/%s/%s", cd.BaseURL,
 		url.PathEscape(cd.ProductVersion.Name),
 		url.PathEscape(cd.ProductVersion.Version.String()),
@@ -77,7 +69,6 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums(ctx context.Context) (C
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", sigURL, err)
 	}
-	cd.applyAuth(req)
 	sigResp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -99,7 +90,6 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums(ctx context.Context) (C
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", shasumsURL, err)
 	}
-	cd.applyAuth(req)
 	sumsResp, err := client.Do(req)
 	if err != nil {
 		return nil, err

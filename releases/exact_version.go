@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -45,10 +46,12 @@ type ExactVersion struct {
 	// Note: The directory structure of the custom URL must match the HashiCorp releases site (including the index.json files).
 	ApiBaseURL string
 
-	// Auth holds optional credentials for authenticating against a
-	// custom releases mirror (see ApiBaseURL). Bearer token takes precedence
-	// over basic auth when both are set.
-	Auth          APIHTTPAuth
+	// Transport, if set, wraps hc-install's default HTTP transport for
+	// requests made against ApiBaseURL, allowing callers to customize
+	// outgoing requests -- for example to inject authentication headers
+	// required by a private mirror.
+	Transport func(http.RoundTripper) http.RoundTripper
+
 	logger        *log.Logger
 	pathsToRemove []string
 }
@@ -118,7 +121,7 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		rels.BaseURL = ev.ApiBaseURL
 	}
 	rels.SetLogger(ev.log())
-	rels.ConfigureAuth(ev.Auth.Username, ev.Auth.Password, ev.Auth.BearerToken)
+	rels.Transport = ev.Transport
 	installVersion := ev.Version
 	if ev.Enterprise != nil {
 		installVersion = versionWithMetadata(installVersion, enterpriseVersionMetadata(ev.Enterprise))
@@ -133,9 +136,7 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		VerifyChecksum:   !ev.SkipChecksumVerification,
 		ArmoredPublicKey: pubkey.DefaultPublicKey,
 		BaseURL:          rels.BaseURL,
-		APIUser:          ev.Auth.Username,
-		APIPassword:      ev.Auth.Password,
-		APIBearer:        ev.Auth.BearerToken,
+		Transport:        ev.Transport,
 	}
 	if ev.ArmoredPublicKey != "" {
 		d.ArmoredPublicKey = ev.ArmoredPublicKey

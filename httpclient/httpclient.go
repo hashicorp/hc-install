@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/hc-install/version"
 )
 
-// NewHTTPClient provides a pre-configured http.Client
+// New provides a pre-configured http.Client
 // e.g. with relevant User-Agent header
-func NewHTTPClient(logger *log.Logger) *http.Client {
+func New(logger *log.Logger) *http.Client {
 	rc := retryablehttp.NewClient()
 	rc.Logger = logger
 	client := rc.StandardClient()

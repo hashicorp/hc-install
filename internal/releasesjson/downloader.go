@@ -62,7 +62,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 		}
 	}
 
-	client := httpclient.NewHTTPClient(d.Logger)
+	client := httpclient.New(d.Logger)
 
 	archiveURL, err := determineArchiveURL(pb.URL, d.BaseURL)
 	if err != nil {

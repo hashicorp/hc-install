@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/hc-install/internal/httpclient"
+	"github.com/hashicorp/hc-install/httpclient"
 )
 
 const defaultBaseURL = "https://releases.hashicorp.com"

@@ -52,7 +52,7 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums(ctx context.Context) (C
 		return nil, err
 	}
 
-	client := httpclient.New(cd.Logger)
+	client := httpclient.New(httpclient.WithLogger(cd.Logger))
 	sigURL := fmt.Sprintf("%s/%s/%s/%s", cd.BaseURL,
 		url.PathEscape(cd.ProductVersion.Name),
 		url.PathEscape(cd.ProductVersion.Version.String()),

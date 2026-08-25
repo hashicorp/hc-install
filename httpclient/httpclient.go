@@ -4,35 +4,33 @@
 package httpclient
 
 import (
-	"fmt"
+	"io"
 	"log"
 	"net/http"
 
 	"github.com/hashicorp/go-retryablehttp"
-	"github.com/hashicorp/hc-install/version"
 )
+
+var discardLogger = log.New(io.Discard, "", 0)
+var defaultOpts = []Option{
+	WithLogger(discardLogger),
+	withUserAgent(),
+}
 
 // New provides a pre-configured http.Client
 // e.g. with relevant User-Agent header
-func New(logger *log.Logger) *http.Client {
+func New(opts ...Option) *http.Client {
 	rc := retryablehttp.NewClient()
-	rc.Logger = logger
-	client := rc.StandardClient()
-	client.Transport = &userAgentRoundTripper{
-		userAgent: fmt.Sprintf("hc-install/%s", version.Version()),
-		inner:     client.Transport,
-	}
-	return client
-}
 
-type userAgentRoundTripper struct {
-	inner     http.RoundTripper
-	userAgent string
-}
-
-func (rt *userAgentRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	if _, ok := req.Header["User-Agent"]; !ok {
-		req.Header.Set("User-Agent", rt.userAgent)
+	// process default options first
+	for _, opt := range defaultOpts {
+		opt(rc)
 	}
-	return rt.inner.RoundTrip(req)
+
+	// process any other options
+	for _, opt := range opts {
+		opt(rc)
+	}
+
+	return rc.StandardClient()
 }

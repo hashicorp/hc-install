@@ -10,4 +10,13 @@ binary {
   secrets { # Scan for secrets in the binary
     all = true
   }
+
+  triage {
+      suppress {
+        vulnerabilities = [
+          // Impacted package not used by hc-install
+          "GO-2026-5932",
+        ]
+      }
+    }
 }

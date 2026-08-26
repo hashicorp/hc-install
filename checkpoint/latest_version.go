@@ -45,6 +45,15 @@ type LatestVersion struct {
 	// instead of built-in pubkey to verify signature of downloaded checksums
 	ArmoredPublicKey string
 
+	// HTTPClient represents the client to use for making
+	// all round trips between the library (client) and the server.
+	//
+	// Defaults to [httpclient.New] with logger passed through if set via [SetLogger] earlier.
+	//
+	// Caller is responsible for passing logger to the client via [httpclient.WithLogger]
+	// when overriding defaults.
+	HTTPClient *http.Client
+
 	logger        *log.Logger
 	pathsToRemove []string
 }
@@ -54,6 +63,9 @@ func (*LatestVersion) IsSourceImpl() isrc.InstallSrcSigil {
 }
 
 // SetLogger sets [log.Logger] to log internal debug messages.
+//
+// If you override HTTPClient you may also need to pass
+// logger there via [httpclient.WithLogger].
 func (lv *LatestVersion) SetLogger(logger *log.Logger) {
 	lv.logger = logger
 }
@@ -66,7 +78,10 @@ func (lv *LatestVersion) log() *log.Logger {
 }
 
 func (lv *LatestVersion) httpClient() *http.Client {
-	return httpclient.New(httpclient.WithLogger(lv.log()))
+	if lv.HTTPClient == nil {
+		return httpclient.New(httpclient.WithLogger(lv.log()))
+	}
+	return lv.HTTPClient
 }
 
 func (lv *LatestVersion) Validate() error {

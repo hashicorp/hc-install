@@ -29,6 +29,12 @@ type Versions struct {
 
 	// Install represents configuration for installation of any listed version
 	Install InstallationOptions
+
+	// HTTPClient represents the client to use for making
+	// all round trips between the library (client) and the server.
+	//
+	// Defaults to [httpclient.New] if not set.
+	HTTPClient *http.Client
 }
 
 type InstallationOptions struct {
@@ -45,7 +51,10 @@ type InstallationOptions struct {
 }
 
 func (v *Versions) httpClient() *http.Client {
-	return httpclient.New()
+	if v.HTTPClient == nil {
+		return httpclient.New()
+	}
+	return v.HTTPClient
 }
 
 func (v *Versions) List(ctx context.Context) ([]src.Source, error) {

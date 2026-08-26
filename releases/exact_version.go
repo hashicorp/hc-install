@@ -45,7 +45,17 @@ type ExactVersion struct {
 	// ApiBaseURL is an optional field that specifies a custom URL to download the product from.
 	// If ApiBaseURL is set, the product will be downloaded from this base URL instead of the default site.
 	// Note: The directory structure of the custom URL must match the HashiCorp releases site (including the index.json files).
-	ApiBaseURL    string
+	ApiBaseURL string
+
+	// HTTPClient represents the client to use for making
+	// all round trips between the library (client) and the server.
+	//
+	// Defaults to [httpclient.New] with logger passed through if set via [SetLogger] earlier.
+	//
+	// Caller is responsible for passing logger to the client via [httpclient.WithLogger]
+	// when overriding defaults.
+	HTTPClient *http.Client
+
 	logger        *log.Logger
 	pathsToRemove []string
 }
@@ -55,6 +65,9 @@ func (*ExactVersion) IsSourceImpl() isrc.InstallSrcSigil {
 }
 
 // SetLogger sets [log.Logger] to log internal debug messages.
+//
+// If you override HTTPClient you may also need to pass
+// logger there via [httpclient.WithLogger].
 func (ev *ExactVersion) SetLogger(logger *log.Logger) {
 	ev.logger = logger
 }
@@ -67,7 +80,10 @@ func (ev *ExactVersion) log() *log.Logger {
 }
 
 func (ev *ExactVersion) httpClient() *http.Client {
-	return httpclient.New(httpclient.WithLogger(ev.log()))
+	if ev.HTTPClient == nil {
+		return httpclient.New(httpclient.WithLogger(ev.log()))
+	}
+	return ev.HTTPClient
 }
 
 func (ev *ExactVersion) Validate() error {

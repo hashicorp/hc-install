@@ -7,11 +7,13 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/hc-install/httpclient"
 	"github.com/hashicorp/hc-install/internal/pubkey"
 	rjson "github.com/hashicorp/hc-install/internal/releasesjson"
 	isrc "github.com/hashicorp/hc-install/internal/src"
@@ -52,6 +54,7 @@ func (*ExactVersion) IsSourceImpl() isrc.InstallSrcSigil {
 	return isrc.InstallSrcSigil{}
 }
 
+// SetLogger sets [log.Logger] to log internal debug messages.
 func (ev *ExactVersion) SetLogger(logger *log.Logger) {
 	ev.logger = logger
 }
@@ -61,6 +64,10 @@ func (ev *ExactVersion) log() *log.Logger {
 		return discardLogger
 	}
 	return ev.logger
+}
+
+func (ev *ExactVersion) httpClient() *http.Client {
+	return httpclient.New(httpclient.WithLogger(ev.log()))
 }
 
 func (ev *ExactVersion) Validate() error {
@@ -108,11 +115,14 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 	}
 	ev.log().Printf("will install into dir at %s", dstDir)
 
+	client := ev.httpClient()
+
 	rels := rjson.NewReleases()
 	if ev.ApiBaseURL != "" {
 		rels.BaseURL = ev.ApiBaseURL
 	}
 	rels.SetLogger(ev.log())
+	rels.SetHTTPClient(client)
 	installVersion := ev.Version
 	if ev.Enterprise != nil {
 		installVersion = versionWithMetadata(installVersion, enterpriseVersionMetadata(ev.Enterprise))
@@ -127,6 +137,7 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		VerifyChecksum:   !ev.SkipChecksumVerification,
 		ArmoredPublicKey: pubkey.DefaultPublicKey,
 		BaseURL:          rels.BaseURL,
+		HTTPClient:       client,
 	}
 	if ev.ArmoredPublicKey != "" {
 		d.ArmoredPublicKey = ev.ArmoredPublicKey

@@ -6,10 +6,12 @@ package releases
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sort"
 	"time"
 
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/hc-install/httpclient"
 	rjson "github.com/hashicorp/hc-install/internal/releasesjson"
 	"github.com/hashicorp/hc-install/internal/validators"
 	"github.com/hashicorp/hc-install/product"
@@ -42,6 +44,10 @@ type InstallationOptions struct {
 	ArmoredPublicKey string
 }
 
+func (v *Versions) httpClient() *http.Client {
+	return httpclient.New()
+}
+
 func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 	if !validators.IsProductNameValid(v.Product.Name) {
 		return nil, fmt.Errorf("invalid product name: %q", v.Product.Name)
@@ -59,6 +65,7 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 	defer cancelFunc()
 
 	r := rjson.NewReleases()
+	r.SetHTTPClient(v.httpClient())
 	pvs, err := r.ListProductVersions(ctx, v.Product.Name)
 	if err != nil {
 		return nil, err

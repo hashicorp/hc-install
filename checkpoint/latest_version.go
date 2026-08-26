@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -15,6 +16,7 @@ import (
 
 	checkpoint "github.com/hashicorp/go-checkpoint"
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/hc-install/httpclient"
 	"github.com/hashicorp/hc-install/internal/pubkey"
 	rjson "github.com/hashicorp/hc-install/internal/releasesjson"
 	isrc "github.com/hashicorp/hc-install/internal/src"
@@ -51,6 +53,7 @@ func (*LatestVersion) IsSourceImpl() isrc.InstallSrcSigil {
 	return isrc.InstallSrcSigil{}
 }
 
+// SetLogger sets [log.Logger] to log internal debug messages.
 func (lv *LatestVersion) SetLogger(logger *log.Logger) {
 	lv.logger = logger
 }
@@ -60,6 +63,10 @@ func (lv *LatestVersion) log() *log.Logger {
 		return discardLogger
 	}
 	return lv.logger
+}
+
+func (lv *LatestVersion) httpClient() *http.Client {
+	return httpclient.New(httpclient.WithLogger(lv.log()))
 }
 
 func (lv *LatestVersion) Validate() error {
@@ -114,8 +121,11 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 	}
 	lv.log().Printf("will install into dir at %s", dstDir)
 
+	client := lv.httpClient()
+
 	rels := rjson.NewReleases()
 	rels.SetLogger(lv.log())
+	rels.SetHTTPClient(client)
 	pv, err := rels.GetProductVersion(ctx, lv.Product.Name, latestVersion)
 	if err != nil {
 		return "", err
@@ -126,6 +136,7 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 		VerifyChecksum:   !lv.SkipChecksumVerification,
 		ArmoredPublicKey: pubkey.DefaultPublicKey,
 		BaseURL:          rels.BaseURL,
+		HTTPClient:       client,
 	}
 	if lv.ArmoredPublicKey != "" {
 		d.ArmoredPublicKey = lv.ArmoredPublicKey

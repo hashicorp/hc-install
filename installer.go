@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"sync"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/hc-install/errors"
@@ -15,8 +16,8 @@ import (
 )
 
 type Installer struct {
-	logger *log.Logger
-
+	mu               sync.Mutex
+	logger           *log.Logger
 	removableSources []src.Removable
 }
 
@@ -30,10 +31,15 @@ func NewInstaller() *Installer {
 }
 
 func (i *Installer) SetLogger(logger *log.Logger) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
 	i.logger = logger
 }
 
 func (i *Installer) Ensure(ctx context.Context, sources []src.Source) (string, error) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
 	var errs *multierror.Error
 
 	for _, source := range sources {
@@ -52,8 +58,6 @@ func (i *Installer) Ensure(ctx context.Context, sources []src.Source) (string, e
 	if errs.ErrorOrNil() != nil {
 		return "", errs
 	}
-
-	i.removableSources = make([]src.Removable, 0)
 
 	for _, source := range sources {
 		if s, ok := source.(src.Removable); ok {
@@ -104,9 +108,10 @@ func (i *Installer) Ensure(ctx context.Context, sources []src.Source) (string, e
 }
 
 func (i *Installer) Install(ctx context.Context, sources []src.Installable) (string, error) {
-	var errs *multierror.Error
+	i.mu.Lock()
+	defer i.mu.Unlock()
 
-	i.removableSources = make([]src.Removable, 0)
+	var errs *multierror.Error
 
 	for _, source := range sources {
 		if srcWithLogger, ok := source.(src.LoggerSettable); ok {
@@ -142,14 +147,18 @@ func (i *Installer) Install(ctx context.Context, sources []src.Installable) (str
 }
 
 func (i *Installer) Remove(ctx context.Context) error {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
 	var errs *multierror.Error
 
-	if i.removableSources != nil {
-		for _, rs := range i.removableSources {
-			err := rs.Remove(ctx)
-			if err != nil {
-				errs = multierror.Append(errs, err)
-			}
+	sources := i.removableSources
+	i.removableSources = nil
+
+	for _, rs := range sources {
+		err := rs.Remove(ctx)
+		if err != nil {
+			errs = multierror.Append(errs, err)
 		}
 	}
 

@@ -5,6 +5,8 @@ package releases
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -13,6 +15,169 @@ import (
 	"github.com/hashicorp/hc-install/product"
 	"github.com/hashicorp/hc-install/src"
 )
+
+func TestVersions_List_ApiBaseURL(t *testing.T) {
+	t.Parallel()
+
+	const indexBody = `{
+  "name": "terraform",
+  "versions": {
+    "1.9.2": {
+      "name": "terraform",
+      "version": "1.9.2",
+      "builds": []
+    },
+    "1.9.3": {
+      "name": "terraform",
+      "version": "1.9.3",
+      "builds": []
+    }
+  }
+}`
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/terraform/index.json" {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("content-type", "application/json")
+		_, _ = w.Write([]byte(indexBody))
+	}))
+	t.Cleanup(srv.Close)
+
+	cons, err := version.NewConstraint("= 1.9.3")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	versions := &Versions{
+		Product:     product.Terraform,
+		Constraints: cons,
+		ApiBaseURL:  srv.URL,
+	}
+
+	ctx := context.Background()
+	sources, err := versions.List(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(sources) != 1 {
+		t.Fatalf("expected 1 source, got %d", len(sources))
+	}
+	ev := sources[0].(*ExactVersion)
+	if ev.Version.String() != "1.9.3" {
+		t.Fatalf("expected version 1.9.3, got %q", ev.Version.String())
+	}
+	if ev.ApiBaseURL != srv.URL {
+		t.Fatalf("expected ExactVersion ApiBaseURL %q, got %q", srv.URL, ev.ApiBaseURL)
+	}
+}
+
+// roundTripperFunc lets a plain func satisfy http.RoundTripper.
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
+}
+
+func TestVersions_List_TransportBearerAuth(t *testing.T) {
+	t.Parallel()
+
+	const (
+		wantToken = "super-secret"
+		indexBody = `{"name":"terraform","versions":{"1.9.3":{"name":"terraform","version":"1.9.3","builds":[]}}}`
+	)
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer "+wantToken {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		w.Header().Set("content-type", "application/json")
+		_, _ = w.Write([]byte(indexBody))
+	}))
+	t.Cleanup(srv.Close)
+
+	cons, err := version.NewConstraint("= 1.9.3")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bearerTransport := func(next http.RoundTripper) http.RoundTripper {
+		return roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+			req.Header.Set("Authorization", "Bearer "+wantToken)
+			return next.RoundTrip(req)
+		})
+	}
+
+	versions := &Versions{
+		Product:     product.Terraform,
+		Constraints: cons,
+		ApiBaseURL:  srv.URL,
+		Transport:   bearerTransport,
+	}
+
+	sources, err := versions.List(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(sources) != 1 {
+		t.Fatalf("expected 1 source, got %d", len(sources))
+	}
+	ev := sources[0].(*ExactVersion)
+	if ev.Transport == nil {
+		t.Fatal("expected ExactVersion Transport to be propagated")
+	}
+}
+
+func TestVersions_List_TransportBasicAuth(t *testing.T) {
+	t.Parallel()
+
+	const (
+		wantUser     = "user"
+		wantPassword = "pass"
+		indexBody    = `{"name":"terraform","versions":{"1.9.3":{"name":"terraform","version":"1.9.3","builds":[]}}}`
+	)
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		u, p, ok := r.BasicAuth()
+		if !ok || u != wantUser || p != wantPassword {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		w.Header().Set("content-type", "application/json")
+		_, _ = w.Write([]byte(indexBody))
+	}))
+	t.Cleanup(srv.Close)
+
+	cons, err := version.NewConstraint("= 1.9.3")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	basicAuthTransport := func(next http.RoundTripper) http.RoundTripper {
+		return roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+			req.SetBasicAuth(wantUser, wantPassword)
+			return next.RoundTrip(req)
+		})
+	}
+
+	versions := &Versions{
+		Product:     product.Terraform,
+		Constraints: cons,
+		ApiBaseURL:  srv.URL,
+		Transport:   basicAuthTransport,
+	}
+
+	sources, err := versions.List(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(sources) != 1 {
+		t.Fatalf("expected 1 source, got %d", len(sources))
+	}
+}
 
 func TestVersions_List(t *testing.T) {
 	testutil.EndToEndTest(t)

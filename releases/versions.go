@@ -6,10 +6,12 @@ package releases
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sort"
 	"time"
 
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/hc-install/httpclient"
 	rjson "github.com/hashicorp/hc-install/internal/releasesjson"
 	"github.com/hashicorp/hc-install/internal/validators"
 	"github.com/hashicorp/hc-install/product"
@@ -27,6 +29,12 @@ type Versions struct {
 
 	// Install represents configuration for installation of any listed version
 	Install InstallationOptions
+
+	// HTTPClient represents the client to use for making
+	// all round trips between the library (client) and the server.
+	//
+	// Defaults to [httpclient.New] if not set.
+	HTTPClient *http.Client
 }
 
 type InstallationOptions struct {
@@ -40,6 +48,13 @@ type InstallationOptions struct {
 	// instead of built-in pubkey to verify signature of downloaded checksums
 	// during installation
 	ArmoredPublicKey string
+}
+
+func (v *Versions) httpClient() *http.Client {
+	if v.HTTPClient == nil {
+		return httpclient.New()
+	}
+	return v.HTTPClient
 }
 
 func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
@@ -59,6 +74,7 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 	defer cancelFunc()
 
 	r := rjson.NewReleases()
+	r.SetHTTPClient(v.httpClient())
 	pvs, err := r.ListProductVersions(ctx, v.Product.Name)
 	if err != nil {
 		return nil, err

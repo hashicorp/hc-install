@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/hc-install/httpclient"
 	"github.com/hashicorp/hc-install/internal/testutil"
 )
 
@@ -16,6 +17,7 @@ func TestListProductVersions_includesEnterpriseBuilds(t *testing.T) {
 
 	r := NewReleases()
 	r.SetLogger(testutil.TestLogger())
+	r.SetHTTPClient(httpclient.New(httpclient.WithLogger(testutil.TestLogger())))
 
 	ctx := context.Background()
 	pVersions, err := r.ListProductVersions(ctx, "consul")
@@ -35,6 +37,7 @@ func TestGetProductVersion_includesEnterpriseBuild(t *testing.T) {
 
 	r := NewReleases()
 	r.SetLogger(testutil.TestLogger())
+	r.SetHTTPClient(httpclient.New(httpclient.WithLogger(testutil.TestLogger())))
 
 	ctx := context.Background()
 

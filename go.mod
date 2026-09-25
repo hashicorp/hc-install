@@ -6,7 +6,7 @@ go 1.26.0
 toolchain go1.26.8
 
 require (
-	github.com/ProtonMail/go-crypto v1.4.1
+	github.com/ProtonMail/go-crypto v1.5.0
 	github.com/go-git/go-git/v5 v5.19.2
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/cli v1.1.7

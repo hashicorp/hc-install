@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/hashicorp/go-version"
 	"golang.org/x/mod/modfile"
@@ -218,18 +219,29 @@ func readGoModVersion(repoDir string) (*version.Version, bool) {
 		if err != nil {
 			return nil, false
 		}
-		f, err := modfile.ParseLax(fi.Name(), b, nil)
+		f, err := modfile.Parse(fi.Name(), b, nil)
+		if err != nil {
+			// Preserve support for go.mod files containing directives that this
+			// version of x/mod does not know yet.
+			f, err = modfile.ParseLax(fi.Name(), b, nil)
+		}
 		if err != nil {
 			return nil, false
 		}
-		if f.Go == nil {
-			return nil, false
+		if f.Toolchain != nil {
+			toolchainVersion := strings.TrimPrefix(f.Toolchain.Name, "go")
+			requiredVersion, err := version.NewVersion(toolchainVersion)
+			if err == nil {
+				return requiredVersion, true
+			}
 		}
-		requiredVersion, err := version.NewVersion(f.Go.Version)
-		if err != nil {
-			return nil, false
+		if f.Go != nil {
+			requiredVersion, err := version.NewVersion(f.Go.Version)
+			if err == nil {
+				return requiredVersion, true
+			}
 		}
-		return requiredVersion, true
+		return nil, false
 	}
 	return nil, false
 }

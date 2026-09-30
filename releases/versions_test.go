@@ -5,14 +5,142 @@ package releases
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/hc-install/httpclient"
 	"github.com/hashicorp/hc-install/internal/testutil"
 	"github.com/hashicorp/hc-install/product"
 	"github.com/hashicorp/hc-install/src"
 )
+
+func TestVersions_List_ApiBaseURL(t *testing.T) {
+	mockApiRoot := filepath.Join("testdata", "mock_api_tf_0_14_with_prereleases")
+	srv := testutil.NewTestServer(t, mockApiRoot)
+
+	cons, err := version.NewConstraint(">= 0.14.0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	versions := &Versions{
+		Product:     product.Terraform,
+		Constraints: cons,
+		ApiBaseURL:  srv.URL,
+	}
+
+	sources, err := versions.List(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(sources) != 1 {
+		t.Fatalf("expected 1 source, got %d", len(sources))
+	}
+	ev := sources[0].(*ExactVersion)
+	if ev.Version.String() != "0.14.11" {
+		t.Fatalf("expected version 0.14.11, got %q", ev.Version.String())
+	}
+	if ev.ApiBaseURL != srv.URL {
+		t.Fatalf("expected ExactVersion ApiBaseURL %q, got %q", srv.URL, ev.ApiBaseURL)
+	}
+	if ev.HTTPClient != nil {
+		t.Fatal("expected ExactVersion HTTPClient to be left nil (default)")
+	}
+}
+
+type bearerTokenRoundTripper struct {
+	token string
+	inner http.RoundTripper
+}
+
+func (rt *bearerTokenRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	req = req.Clone(req.Context())
+	req.Header.Set("Authorization", "Bearer "+rt.token)
+	return rt.inner.RoundTrip(req)
+}
+
+func TestVersions_List_HTTPClient(t *testing.T) {
+	const token = "super-secret"
+
+	mockApiRoot := filepath.Join("testdata", "mock_api_tf_0_14_with_prereleases")
+	fileServer := http.FileServer(http.Dir(mockApiRoot))
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer "+token {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		fileServer.ServeHTTP(w, r)
+	}))
+	t.Cleanup(srv.Close)
+
+	cons, err := version.NewConstraint("= 0.14.11")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := context.Background()
+
+	t.Run("without auth", func(t *testing.T) {
+		versions := &Versions{
+			Product:     product.Terraform,
+			Constraints: cons,
+			ApiBaseURL:  srv.URL,
+		}
+		_, err := versions.List(ctx)
+		if err == nil {
+			t.Fatal("expected error listing versions from authenticated mirror without credentials")
+		}
+	})
+
+	t.Run("with auth", func(t *testing.T) {
+		client := httpclient.New(httpclient.WithLogger(testutil.TestLogger()))
+		client.Transport = &bearerTokenRoundTripper{token: token, inner: client.Transport}
+
+		versions := &Versions{
+			Product:     product.Terraform,
+			Constraints: cons,
+			ApiBaseURL:  srv.URL,
+			HTTPClient:  client,
+			Install: InstallationOptions{
+				ArmoredPublicKey: getTestPubKey(t),
+			},
+		}
+
+		sources, err := versions.List(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(sources) != 1 {
+			t.Fatalf("expected 1 source, got %d", len(sources))
+		}
+
+		ev := sources[0].(*ExactVersion)
+		if ev.HTTPClient != client {
+			t.Fatal("expected ExactVersion HTTPClient to be passed through from Versions")
+		}
+
+		// installation must reuse the same client to reach the mirror
+		ev.SetLogger(testutil.TestLogger())
+		execPath, err := ev.Install(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { ev.Remove(ctx) })
+
+		v, err := product.Terraform.GetVersion(ctx, execPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !ev.Version.Equal(v) {
+			t.Fatalf("versions don't match (expected: %s, installed: %s)", ev.Version, v)
+		}
+	})
+}
 
 func TestVersions_List(t *testing.T) {
 	testutil.EndToEndTest(t)
